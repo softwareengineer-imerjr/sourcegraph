@@ -39,4 +39,5 @@ build --action_env=PGDATA
 build --action_env=PGDATABASE
 build --action_env=PGDATASOURCE
 build --action_env=PGUSER
+build --noincompatible_sandbox_hermetic_tmp
 EOF

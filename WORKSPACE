@@ -133,6 +133,32 @@ http_archive(
     urls = ["https://github.com/keith/buildifier-prebuilt/archive/6.1.0.tar.gz"],
 )
 
+http_archive(
+    name = "io_tweag_rules_nixpkgs",
+    sha256 = "980edfceef2e59e1122d9be6c52413bc298435f0a3d452532b8a48d7562ffd67",
+    strip_prefix = "rules_nixpkgs-0.10.0",
+    urls = ["https://github.com/tweag/rules_nixpkgs/releases/download/v0.10.0/rules_nixpkgs-0.10.0.tar.gz"],
+)
+
+load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_dependencies")
+
+rules_nixpkgs_dependencies()
+
+load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_local_repository", "nixpkgs_package")
+
+nixpkgs_local_repository(
+    name = "nixpkgs",
+    nix_file_deps = ["//:flake.lock"],
+    nix_flake_lock_file = "//:flake.lock",
+)
+
+nixpkgs_package(
+    name = "curl_nix",
+    attribute_path = "curl",
+    # fail_not_supported = False,
+    repository = "@nixpkgs",
+)
+
 # hermetic_cc_toolchain setup ================================
 HERMETIC_CC_TOOLCHAIN_VERSION = "v2.1.2"
 

@@ -112,7 +112,9 @@ function main(args) {
     throw new Error('Usage: <revision> <outputPath>')
   }
 
-  const [revision, outputPath] = args
+  console.log(JSON.stringify(process.env, undefined, '\t'))
+  const [revision, outputPath, banana] = args
+  console.log(banana)
   const output = path.join(process.cwd(), outputPath)
 
   buildCodeIntelExtensions({ pathToExtensionBundles: output, revision })

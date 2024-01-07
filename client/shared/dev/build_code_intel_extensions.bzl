@@ -19,7 +19,11 @@ def build_code_intel_extensions(name, out, revision):
         args = [
             revision,
             out,
+            # "$(location @curl_nix//:bin/curl)",
         ],
+        # srcs = [
+        #     "@curl_nix//:bin",
+        # ],
         tags = [
             # We download static assets from GitHub.
             "requires-network",
