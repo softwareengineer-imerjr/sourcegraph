@@ -155,7 +155,18 @@ nixpkgs_local_repository(
 nixpkgs_package(
     name = "curl_nix",
     attribute_path = "curl",
-    # fail_not_supported = False,
+    repository = "@nixpkgs",
+)
+
+nixpkgs_package(
+    name = "bash_nix",
+    attribute_path = "bash",
+    repository = "@nixpkgs",
+)
+
+nixpkgs_package(
+    name = "coreutils_nix",
+    attribute_path = "coreutils",
     repository = "@nixpkgs",
 )
 

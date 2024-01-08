@@ -21,12 +21,17 @@ def build_code_intel_extensions(name, out, revision):
             out,
             # "$(location @curl_nix//:bin/curl)",
         ],
-        # srcs = [
-        #     "@curl_nix//:bin",
-        # ],
+        srcs = [
+            "@curl_nix//:bin",
+            "@bash_nix//:bin",
+        ],
         tags = [
             # We download static assets from GitHub.
             "requires-network",
         ],
+        env = {
+            "PATH": "$(locations @bash_nix//:bin):$(location @curl_nix//:bin)",
+        },
+        copy_srcs_to_bin = False,
         tool = "//client/shared/dev:build_code_intel_extensions",
     )

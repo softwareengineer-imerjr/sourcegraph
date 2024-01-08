@@ -13,6 +13,8 @@ const bundlesRepoName = 'sourcegraph-extensions-bundles'
  * in order not to require access to the extensions registry for the code intel features to work.
  */
 function buildCodeIntelExtensions({ pathToExtensionBundles, revision }) {
+  shelljs.set('-e')
+
   const pathToDistributionRevisionFile = path.join(pathToExtensionBundles, 'revision.txt')
 
   const currentRevision =
@@ -108,7 +110,7 @@ module.exports = { buildCodeIntelExtensions }
 
 // Use this script in Bazel. Remove `module.exports` once the Bazel migration is completed.
 function main(args) {
-  if (args.length !== 2) {
+  if (args.length < 2) {
     throw new Error('Usage: <revision> <outputPath>')
   }
 
