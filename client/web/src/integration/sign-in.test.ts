@@ -26,6 +26,7 @@ describe('SignIn', () => {
     afterEach(() => testContext?.dispose())
 
     it('is styled correctly', async () => {
+        throw new Error("foobar")
         testContext.overrideGraphQL({
             ...commonWebGraphQlResults,
             CurrentAuthState: () => ({
