@@ -12,6 +12,8 @@ const resolveBin = require('resolve-bin')
 // to the Puppeteer browser executable downloaded in the postinstall script.
 /** @returns {Record<string, string>} env vars */
 function getEnvVars() {
+  console.log("getEnvVars START")
+
   // JS_BINARY__EXECROOT – Set by Bazel `js_run_binary` rule.
   // BAZEL_BINDIR – Set by Bazel `js_run_binary` rule.
   const { JS_BINARY__EXECROOT, BAZEL_BINDIR } = process.env
@@ -44,6 +46,9 @@ function getEnvVars() {
       .map(item => item.split(' '))
   )
 
+
+  console.log("getEnvVars volatileEnvVariables", volatileEnvVariables)
+
   // Merge the custom "PERCY_BROWSER_EXECUTABLE" variable with the Bazel-provided variables
   // This is required to skip the "download Chromium" step in Percy's "exec" command.
   // https://docs.percy.io/docs/skipping-asset-discovery-browser-download#using-an-environment-variable
@@ -65,9 +70,11 @@ const mochaBin = resolveBin.sync('mocha')
 // Extract command-line arguments to pass to Mocha
 const args = process.argv.slice(2)
 
+console.log("execFileSync BEFORE")
 // Execute the final command, inheriting the stdio settings from the parent process and and wrapping
 // the Mocha command with Percy's "exec" command (https://docs.percy.io/docs/cli-exec).
 execFileSync(percyBin, ['exec', '--', mochaBin, ...args], {
   env: { ...process.env, ...getEnvVars() },
   stdio: 'inherit',
 })
+console.log("execFileSync AFTER")
