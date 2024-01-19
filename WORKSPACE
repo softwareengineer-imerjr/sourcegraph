@@ -133,6 +133,15 @@ http_archive(
     urls = ["https://github.com/keith/buildifier-prebuilt/archive/6.1.0.tar.gz"],
 )
 
+RULES_PYTHON_VERSION = "0.23.1"
+
+http_archive(
+    name = "rules_python",
+    sha256 = "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
+    strip_prefix = "rules_python-{}".format(RULES_PYTHON_VERSION),
+    url = "https://github.com/bazelbuild/rules_python/releases/download/{}/rules_python-{}.tar.gz".format(RULES_PYTHON_VERSION, RULES_PYTHON_VERSION),
+)
+
 # hermetic_cc_toolchain setup ================================
 HERMETIC_CC_TOOLCHAIN_VERSION = "v2.2.1"
 
@@ -426,3 +435,15 @@ gazelle_buf_dependencies()
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 
 protobuf_deps()
+
+# load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+
+register_toolchains("//:host_python")
+
+# python_register_toolchains(
+#     name = "python_3_10",
+#     # Available versions are listed in @rules_python//python:versions.bzl.
+#     python_version = "3.10",
+# )
+
+# register_toolchains("//:py_toolchain")

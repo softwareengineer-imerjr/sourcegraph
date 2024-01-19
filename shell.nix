@@ -43,6 +43,7 @@ let
     targetPkgs = pkgs: (with pkgs; [
       bazel-wrapper
       zlib.dev
+      python310
     ]);
     # unsharePid required to preserve bazel server between bazel invocations,
     # the rest are disabled just in case
