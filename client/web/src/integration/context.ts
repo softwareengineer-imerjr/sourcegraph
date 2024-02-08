@@ -16,6 +16,7 @@ import { commonWebGraphQlResults } from './graphQlResults'
 import { createJsContext } from './jscontext'
 import { TemporarySettingsContext } from './temporarySettingsContext'
 
+// adding a comment
 export interface WebIntegrationTestContext
     extends IntegrationTestContext<
         WebGraphQlOperations & SharedGraphQlOperations,
