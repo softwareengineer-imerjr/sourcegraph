@@ -1,0 +1,31 @@
+diff --git a/pkg/private/tar/build_tar.py b/pkg/private/tar/build_tar.py
+index f4b9f0d..47c11d0 100644
+--- a/pkg/private/tar/build_tar.py
++++ b/pkg/private/tar/build_tar.py
+@@ -453,6 +453,7 @@ def main():
+       output.add_tar(tar)
+     for deb in options.deb or []:
+       output.add_deb(deb)
++
+
+
+ if __name__ == '__main__':
+diff --git a/pkg/private/tar/tar_writer.py b/pkg/private/tar/tar_writer.py
+index 325db76..5cbe2d9 100644
+--- a/pkg/private/tar/tar_writer.py
++++ b/pkg/private/tar/tar_writer.py
+@@ -328,7 +328,14 @@ class TarFileWriter(object):
+     Raises:
+       TarFileWriter.Error: if an error happens when compressing the output file.
+     """
++    for key, val in self.tar.pax_headers:
++      print(key, val)
++    for m in self.tar.getmembers():
++      print("member {}", m.name)
++      for key, val in m.pax_headers:
++        print(key, val)
+     self.tar.close()
++    self.tar.pax_headers
+     # Close the file object if necessary.
+     if self.fileobj:
+       self.fileobj.close()
