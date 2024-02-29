@@ -334,6 +334,40 @@ config_setting(
 )
 
 load("@rules_apko//apko:defs.bzl", "apko_bazelrc")
+load("@rules_apko//apko:repositories.bzl", "apko_register_toolchains", "rules_apko_dependencies")
+load("@rules_apko//apko:toolchain.bzl", "apko_toolchain")
+
+apko_toolchain(
+    name = "apko_linux",
+    apko = "@dev_chainguard_apko//:apko",
+    version = "0.13.2",
+)
+
+apko_toolchain(
+    name = "apko_darwin",
+    apko = "@dev_chainguard_apko//:apko",
+    version = "0.13.2",
+)
+
+toolchain(
+    name = "apko_linux_toolchain",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    toolchain = "//:apko_linux",
+    toolchain_type = "@rules_apko//apko:toolchain_type",
+)
+
+toolchain(
+    name = "apko_darwin_toolchain",
+    exec_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:aarch64",
+    ],
+    toolchain = "//:apko_darwin",
+    toolchain_type = "@rules_apko//apko:toolchain_type",
+)
 
 apko_bazelrc(
     name = "apko_bazelrc",

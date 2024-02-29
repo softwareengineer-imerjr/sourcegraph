@@ -1,0 +1,72 @@
+diff --git a/pkg/apk/cache.go b/pkg/apk/cache.go
+index a769ce6..e6ef8c6 100644
+--- a/pkg/apk/cache.go
++++ b/pkg/apk/cache.go
+@@ -160,7 +160,7 @@ func (t *cacheTransport) RoundTrip(request *http.Request) (*http.Response, error
+ 	if request.URL == nil {
+ 		return nil, fmt.Errorf("no URL in request")
+ 	}
+-	cacheFile, err := cachePathFromURL(t.root, *request.URL)
++	cacheFile, err := CachePathFromURL(t.root, *request.URL)
+ 	if err != nil {
+ 		return nil, fmt.Errorf("invalid cache path based on URL: %w", err)
+ 	}
+@@ -185,7 +185,7 @@ func (t *cacheTransport) RoundTrip(request *http.Request) (*http.Response, error
+ 	}
+
+ 	if t.offline {
+-		cacheDir := cacheDirFromFile(cacheFile)
++		cacheDir := CacheDirFromFile(cacheFile)
+ 		des, err := os.ReadDir(cacheDir)
+ 		if err != nil {
+ 			return nil, fmt.Errorf("listing %q for offline cache: %w", cacheDir, err)
+@@ -226,7 +226,7 @@ func (t *cacheTransport) RoundTrip(request *http.Request) (*http.Response, error
+ 	return globalEtagCache.get(t, request, cacheFile)
+ }
+
+-func cacheDirFromFile(cacheFile string) string {
++func CacheDirFromFile(cacheFile string) string {
+ 	if strings.HasSuffix(cacheFile, "APKINDEX.tar.gz") {
+ 		return filepath.Join(filepath.Dir(cacheFile), "APKINDEX")
+ 	}
+@@ -274,7 +274,7 @@ func (t *cacheTransport) retrieveAndSaveFile(request *http.Request, cp cachePlac
+ 		return "", err
+ 	}
+ 	cacheDir := filepath.Dir(cacheFile)
+-	if err := os.MkdirAll(cacheDir, 0755); err != nil {
++	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
+ 		return "", fmt.Errorf("unable to create cache directory: %w", err)
+ 	}
+
+@@ -310,7 +310,7 @@ func cacheDirForPackage(root string, pkg InstallablePackage) (string, error) {
+ 		return "", err
+ 	}
+
+-	p, err := cachePathFromURL(root, *u)
++	p, err := CachePathFromURL(root, *u)
+ 	if err != nil {
+ 		return "", err
+ 	}
+@@ -322,8 +322,11 @@ func cacheDirForPackage(root string, pkg InstallablePackage) (string, error) {
+ 	return strings.TrimSuffix(p, ".apk"), nil
+ }
+
+-// cachePathFromURL given a URL, figure out what the cache path would be
+-func cachePathFromURL(root string, u url.URL) (string, error) {
++// CachePathFromURL given a URL, figure out what the cache path would be
++func CachePathFromURL(root string, u url.URL) (cacheFile string, err error) {
++	defer func() {
++		fmt.Printf("ROOT=%s URL=%s CACHEFILE=%s\n", root, u.String(), cacheFile)
++	}()
+ 	// the last two levels are what we append. For example https://example.com/foo/bar/x86_64/baz.apk
+ 	// means we want to append x86_64/baz.apk to our cache root
+ 	u2 := u
+@@ -339,7 +342,7 @@ func cachePathFromURL(root string, u url.URL) (string, error) {
+
+ 	// url encode it so it can be a single directory
+ 	repoDir = url.QueryEscape(u2.String())
+-	cacheFile := filepath.Join(root, repoDir, dir, filename)
++	cacheFile = filepath.Join(root, repoDir, dir, filename)
+ 	// validate it is within root
+ 	cacheFile = filepath.Clean(cacheFile)
+ 	cleanroot := filepath.Clean(root)
