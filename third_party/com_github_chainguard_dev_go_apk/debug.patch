@@ -1,0 +1,75 @@
+diff --git a/pkg/apk/cache.go b/pkg/apk/cache.go
+index a769ce6..cc6a2da 100644
+--- a/pkg/apk/cache.go
++++ b/pkg/apk/cache.go
+@@ -165,6 +165,8 @@ func (t *cacheTransport) RoundTrip(request *http.Request) (*http.Response, error
+ 		return nil, fmt.Errorf("invalid cache path based on URL: %w", err)
+ 	}
+
++	// fmt.Printf("URL %s CACHEFILE %s\n", request.URL.String(), cacheFile)
++
+ 	if !t.etagRequired {
+ 		// We don't cache the response for these because they get cached later in cachePackage.
+
+@@ -186,6 +188,7 @@ func (t *cacheTransport) RoundTrip(request *http.Request) (*http.Response, error
+
+ 	if t.offline {
+ 		cacheDir := cacheDirFromFile(cacheFile)
++		// fmt.Printf("URL %s CACHEDIR %s\n", request.URL.String(), cacheDir)
+ 		des, err := os.ReadDir(cacheDir)
+ 		if err != nil {
+ 			return nil, fmt.Errorf("listing %q for offline cache: %w", cacheDir, err)
+@@ -195,6 +198,10 @@ func (t *cacheTransport) RoundTrip(request *http.Request) (*http.Response, error
+ 			return nil, fmt.Errorf("no offline cached entries for %s", cacheDir)
+ 		}
+
++		for _, de := range des {
++			fmt.Printf("\tENTRY %s DIR %t\n", de.Name(), de.IsDir())
++		}
++
+ 		newest, err := des[0].Info()
+ 		if err != nil {
+ 			return nil, err
+@@ -274,7 +281,7 @@ func (t *cacheTransport) retrieveAndSaveFile(request *http.Request, cp cachePlac
+ 		return "", err
+ 	}
+ 	cacheDir := filepath.Dir(cacheFile)
+-	if err := os.MkdirAll(cacheDir, 0755); err != nil {
++	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
+ 		return "", fmt.Errorf("unable to create cache directory: %w", err)
+ 	}
+
+@@ -323,7 +330,10 @@ func cacheDirForPackage(root string, pkg InstallablePackage) (string, error) {
+ }
+
+ // cachePathFromURL given a URL, figure out what the cache path would be
+-func cachePathFromURL(root string, u url.URL) (string, error) {
++func cachePathFromURL(root string, u url.URL) (cacheFile string, err error) {
++	defer func() {
++		// fmt.Printf("ROOT=%s URL=%s CACHEFILE=%s\n", root, u.String(), cacheFile)
++	}()
+ 	// the last two levels are what we append. For example https://example.com/foo/bar/x86_64/baz.apk
+ 	// means we want to append x86_64/baz.apk to our cache root
+ 	u2 := u
+@@ -339,7 +349,7 @@ func cachePathFromURL(root string, u url.URL) (string, error) {
+
+ 	// url encode it so it can be a single directory
+ 	repoDir = url.QueryEscape(u2.String())
+-	cacheFile := filepath.Join(root, repoDir, dir, filename)
++	cacheFile = filepath.Join(root, repoDir, dir, filename)
+ 	// validate it is within root
+ 	cacheFile = filepath.Clean(cacheFile)
+ 	cleanroot := filepath.Clean(root)
+diff --git a/pkg/apk/implementation.go b/pkg/apk/implementation.go
+index d8f2916..1613f04 100644
+--- a/pkg/apk/implementation.go
++++ b/pkg/apk/implementation.go
+@@ -381,6 +381,8 @@ func (a *APK) InitKeyring(ctx context.Context, keyFiles, extraKeyFiles []string)
+ 				return fmt.Errorf("failed to parse key as URI: %w", err)
+ 			}
+
++			// fmt.Println("AS URL", asURL.String())
++
+ 			var data []byte
+ 			switch asURL.Scheme {
+ 			case "file": //nolint:goconst
