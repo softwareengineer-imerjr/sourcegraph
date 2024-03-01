@@ -97,3 +97,15 @@ index ebd9780..6204cfb 100644
      rctx.file("BUILD.bazel", APK_KEYRING_TMPL.format(public_key = public_key))
 
  apk_keyring = repository_rule(
+diff --git a/apko/private/apko_image.bzl b/apko/private/apko_image.bzl
+index 818ead4..d4cc78a 100644
+--- a/apko/private/apko_image.bzl
++++ b/apko/private/apko_image.bzl
+@@ -65,6 +65,7 @@ def _impl(ctx):
+         )
+         inputs.append(content_entry)
+
++    print(inputs)
+     ctx.actions.run(
+         executable = apko_info.binary,
+         arguments = [args],
