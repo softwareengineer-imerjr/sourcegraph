@@ -1,0 +1,103 @@
+diff --git a/pkg/apk/cache.go b/pkg/apk/cache.go
+index a769ce6..80cc619 100644
+--- a/pkg/apk/cache.go
++++ b/pkg/apk/cache.go
+@@ -165,6 +165,8 @@ func (t *cacheTransport) RoundTrip(request *http.Request) (*http.Response, error
+ 		return nil, fmt.Errorf("invalid cache path based on URL: %w", err)
+ 	}
+
++	// fmt.Printf("URL %s CACHEFILE %s\n", request.URL.String(), cacheFile)
++
+ 	if !t.etagRequired {
+ 		// We don't cache the response for these because they get cached later in cachePackage.
+
+@@ -186,6 +188,7 @@ func (t *cacheTransport) RoundTrip(request *http.Request) (*http.Response, error
+
+ 	if t.offline {
+ 		cacheDir := cacheDirFromFile(cacheFile)
++		// fmt.Printf("URL %s CACHEDIR %s\n", request.URL.String(), cacheDir)
+ 		des, err := os.ReadDir(cacheDir)
+ 		if err != nil {
+ 			return nil, fmt.Errorf("listing %q for offline cache: %w", cacheDir, err)
+@@ -195,6 +198,10 @@ func (t *cacheTransport) RoundTrip(request *http.Request) (*http.Response, error
+ 			return nil, fmt.Errorf("no offline cached entries for %s", cacheDir)
+ 		}
+
++		for _, de := range des {
++			fmt.Printf("CACHEFILE %s ENTRY %s DIR %t\n", cacheFile, de.Name(), de.IsDir())
++		}
++
+ 		newest, err := des[0].Info()
+ 		if err != nil {
+ 			return nil, err
+@@ -206,11 +213,17 @@ func (t *cacheTransport) RoundTrip(request *http.Request) (*http.Response, error
+ 				return nil, err
+ 			}
+
+-			if fi.ModTime().After(newest.ModTime()) {
++			if (fi.ModTime().After(newest.ModTime()) && !fi.IsDir()) || (newest.IsDir() && !fi.IsDir()) {
+ 				newest = fi
+ 			}
+ 		}
+
++		if newest.IsDir() {
++			return nil, fmt.Errorf("%s is a directory", newest.Name())
++		}
++
++		fmt.Printf("CACHEFILE %s NEWEST %s DIR %t\n", cacheFile, newest.Name(), newest.IsDir())
++
+ 		f, err := os.Open(filepath.Join(cacheDir, newest.Name()))
+ 		if err != nil {
+ 			return nil, err
+@@ -274,7 +287,7 @@ func (t *cacheTransport) retrieveAndSaveFile(request *http.Request, cp cachePlac
+ 		return "", err
+ 	}
+ 	cacheDir := filepath.Dir(cacheFile)
+-	if err := os.MkdirAll(cacheDir, 0755); err != nil {
++	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
+ 		return "", fmt.Errorf("unable to create cache directory: %w", err)
+ 	}
+
+@@ -323,7 +336,10 @@ func cacheDirForPackage(root string, pkg InstallablePackage) (string, error) {
+ }
+
+ // cachePathFromURL given a URL, figure out what the cache path would be
+-func cachePathFromURL(root string, u url.URL) (string, error) {
++func cachePathFromURL(root string, u url.URL) (cacheFile string, err error) {
++	// defer func() {
++	// 	fmt.Printf("ROOT=%s URL=%s CACHEFILE=%s\n", root, u.String(), cacheFile)
++	// }()
+ 	// the last two levels are what we append. For example https://example.com/foo/bar/x86_64/baz.apk
+ 	// means we want to append x86_64/baz.apk to our cache root
+ 	u2 := u
+@@ -339,7 +355,7 @@ func cachePathFromURL(root string, u url.URL) (string, error) {
+
+ 	// url encode it so it can be a single directory
+ 	repoDir = url.QueryEscape(u2.String())
+-	cacheFile := filepath.Join(root, repoDir, dir, filename)
++	cacheFile = filepath.Join(root, repoDir, dir, filename)
+ 	// validate it is within root
+ 	cacheFile = filepath.Clean(cacheFile)
+ 	cleanroot := filepath.Clean(root)
+diff --git a/pkg/apk/implementation.go b/pkg/apk/implementation.go
+index d8f2916..40d2a3e 100644
+--- a/pkg/apk/implementation.go
++++ b/pkg/apk/implementation.go
+@@ -381,6 +381,8 @@ func (a *APK) InitKeyring(ctx context.Context, keyFiles, extraKeyFiles []string)
+ 				return fmt.Errorf("failed to parse key as URI: %w", err)
+ 			}
+
++			// fmt.Println("AS URL", asURL.String())
++
+ 			var data []byte
+ 			switch asURL.Scheme {
+ 			case "file": //nolint:goconst
+@@ -419,7 +421,7 @@ func (a *APK) InitKeyring(ctx context.Context, keyFiles, extraKeyFiles []string)
+
+ 				data, err = io.ReadAll(resp.Body)
+ 				if err != nil {
+-					return fmt.Errorf("failed to read apk key response: %w", err)
++					return fmt.Errorf("failed to read apk key response for url %q: %w", asURL.String(), err)
+ 				}
+ 			default:
+ 				return fmt.Errorf("scheme %s not supported", asURL.Scheme)
