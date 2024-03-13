@@ -422,6 +422,22 @@ func getAndMarshalRepoMetadataUsageJSON(ctx context.Context, db database.DB) (_ 
 	return json.Marshal(repoMetadataUsage)
 }
 
+func getLLMUsageData() (_ json.RawMessage, err error) {
+	tokenCounterCache := rcache.NewWithTTL("LLMUsage", 1800)
+	allKeys := tokenCounterCache.ListAllKeys()
+	usageData := make(map[string]int)
+	for _, key := range allKeys {
+		value, found := tokenCounterCache.GetInt(key)
+		if !found {
+			// Handle the case where the key is not found or there's an error in conversion
+			continue // Skip this key and move to the next
+		}
+		usageData[key] = value
+	}
+
+	return json.Marshal(usageData)
+}
+
 func getDependencyVersions(ctx context.Context, db database.DB, logger log.Logger) (json.RawMessage, error) {
 	logFunc := logFuncFrom(logger.Scoped("getDependencyVersions"))
 	var (
@@ -550,6 +566,7 @@ func updateBody(ctx context.Context, logger log.Logger, db database.DB) (io.Read
 		CodyUsage2:                    []byte("{}"),
 		CodyProviders:                 []byte("{}"),
 		RepoMetadataUsage:             []byte("{}"),
+		LlmUsage:                      []byte("{}"),
 	}
 
 	totalUsers, err := getTotalUsersCount(ctx, db)
@@ -718,7 +735,7 @@ func updateBody(ctx context.Context, logger log.Logger, db database.DB) (io.Read
 	if err != nil {
 		logFunc("repoMetadataUsage failed", log.Error(err))
 	}
-
+	r.LlmUsage, err = getLLMUsageData()
 	r.HasExtURL = conf.UsingExternalURL()
 	r.BuiltinSignupAllowed = conf.IsBuiltinSignupAllowed()
 	r.AccessRequestEnabled = conf.IsAccessRequestEnabled()
