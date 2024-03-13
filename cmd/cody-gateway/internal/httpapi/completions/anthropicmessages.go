@@ -16,9 +16,9 @@ import (
 	"github.com/sourcegraph/sourcegraph/cmd/cody-gateway/internal/events"
 	"github.com/sourcegraph/sourcegraph/cmd/cody-gateway/internal/limiter"
 	"github.com/sourcegraph/sourcegraph/cmd/cody-gateway/internal/notify"
-	"github.com/sourcegraph/sourcegraph/cmd/cody-gateway/internal/tokenizer"
 	"github.com/sourcegraph/sourcegraph/internal/codygateway"
 	"github.com/sourcegraph/sourcegraph/internal/completions/client/anthropicmessages"
+	"github.com/sourcegraph/sourcegraph/internal/completions/tokenizer"
 	"github.com/sourcegraph/sourcegraph/internal/conf/conftypes"
 	"github.com/sourcegraph/sourcegraph/internal/httpcli"
 )

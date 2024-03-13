@@ -7,7 +7,7 @@ import (
 	"github.com/hexops/autogold/v2"
 	"github.com/stretchr/testify/require"
 
-	"github.com/sourcegraph/sourcegraph/cmd/cody-gateway/internal/tokenizer"
+	"github.com/sourcegraph/sourcegraph/internal/completions/tokenizer"
 )
 
 var sampleTexts = []struct {

@@ -8,7 +8,7 @@ go_library(
         "tokenizer.go",
     ],
     embedsrcs = ["claude.json"],
-    importpath = "github.com/sourcegraph/sourcegraph/cmd/cody-gateway/internal/tokenizer",
+    importpath = "github.com/sourcegraph/sourcegraph/internal/completions/tokenizer",
     visibility = [
         "//cmd/cody-gateway:__subpackages__",
         "//internal/completions/client/openai:__pkg__",

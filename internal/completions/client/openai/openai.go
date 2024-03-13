@@ -14,6 +14,8 @@ import (
 	"github.com/sourcegraph/sourcegraph/internal/rcache"
 	"github.com/sourcegraph/sourcegraph/internal/redispool"
 	"github.com/sourcegraph/sourcegraph/lib/errors"
+
+	"github.com/sourcegraph/sourcegraph/internal/completions/tokenizer"
 )
 
 func NewClient(cli httpcli.Doer, endpoint, accessToken string) types.CompletionsClient {
@@ -128,6 +130,11 @@ func (c *openAIChatCompletionStreamClient) Stream(
 	maker.SetInt("Theseeconsda", 3333)
 	fmt.Println("all Keys", allKeys)
 
+	tokenizer, err := tokenizer.NewAnthropicClaudeTokenizer()
+	if err != nil {
+		return nil
+	}
+	fmt.Println("tokenizer for me ", tokenizer)
 	defer (func() {
 		if resp != nil {
 			resp.Body.Close()

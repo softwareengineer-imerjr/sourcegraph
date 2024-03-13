@@ -11,7 +11,7 @@ import (
 
 	"github.com/sourcegraph/sourcegraph/cmd/cody-gateway/shared/config"
 
-	"github.com/sourcegraph/sourcegraph/cmd/cody-gateway/internal/tokenizer"
+	"github.com/sourcegraph/sourcegraph/internal/completions/tokenizer"
 )
 
 func TestIsFlaggedAnthropicRequest(t *testing.T) {
