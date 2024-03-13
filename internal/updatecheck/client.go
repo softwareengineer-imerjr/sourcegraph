@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -26,6 +26,7 @@ import (
 	"github.com/sourcegraph/sourcegraph/internal/extsvc/versions"
 	"github.com/sourcegraph/sourcegraph/internal/httpcli"
 	"github.com/sourcegraph/sourcegraph/internal/metrics"
+	"github.com/sourcegraph/sourcegraph/internal/rcache"
 	"github.com/sourcegraph/sourcegraph/internal/redispool"
 	"github.com/sourcegraph/sourcegraph/internal/siteid"
 	"github.com/sourcegraph/sourcegraph/internal/usagestats"
@@ -51,6 +52,38 @@ var (
 	startedAt  *time.Time
 	lastStatus *Status
 )
+
+type TokenCounter interface {
+	TryAdder(ctx context.Context) error
+}
+
+func NewTokenCounter(rstore redispool.KeyValue) TokenCounter {
+	return &tokenCounter{rstore: rstore}
+}
+
+type tokenCounter struct {
+	rstore redispool.KeyValue
+}
+
+func (r *tokenCounter) TryAdder(ctx context.Context) (err error) {
+	rstore := r.rstore.WithContext(ctx)
+	key := "hellomox"
+	if _, err := rstore.Incr(key); err != nil {
+		return errors.Wrap(err, "failed to increment rate limit counter")
+	}
+
+	currentUsage, _ := rstore.Get(key).Int()
+	fmt.Println("this is the first usage", currentUsage)
+
+	if _, err := rstore.Incr(key); err != nil {
+		return errors.Wrap(err, "failed to increment rate limit counter")
+	}
+
+	currentUsage, _ = rstore.Get(key).Int()
+	fmt.Println("this is the second  usage bro ", currentUsage)
+
+	return nil
+}
 
 // Last returns the status of the last-completed software update check.
 func Last() *Status {
@@ -472,6 +505,23 @@ func updateBody(ctx context.Context, logger log.Logger, db database.DB) (io.Read
 	// Used for cases where large pings objects might otherwise fail silently.
 	logFuncWarn := scopedLog.Warn
 
+	tokenCounter := NewTokenCounter(redispool.Cache)
+	_ = tokenCounter.TryAdder(ctx)
+	fmt.Println(tokenCounter)
+
+	maker := rcache.NewWithTTL("", 1000)
+	val, _ := maker.GetInt("model")
+
+	fmt.Println("This is a val for me now", val)
+	maker.SetInt("model", 1002)
+	val, _ = maker.GetInt("model")
+	maker.SetInt("crteins", 321312)
+	allKeys := maker.ListAllKeys()
+
+	fmt.Println("This is a new val for me ", val)
+	maker.SetInt("crteins", 321312)
+	fmt.Println("all Keys", allKeys)
+
 	r := &pingRequest{
 		ClientSiteID:                  siteid.Get(db),
 		DeployType:                    deploy.Type(),
@@ -868,13 +918,14 @@ func Start(logger log.Logger, db database.DB) {
 	}
 	started = true
 
-	const delay = 30 * time.Minute
+	const delay = 1 * time.Minute
+	fmt.Println("I am at the start of the ping")
 	scopedLog := logger.Scoped("updatecheck")
 	for {
 		check(scopedLog, db)
 
 		// Randomize sleep to prevent thundering herds.
-		randomDelay := time.Duration(rand.Intn(600)) * time.Second
+		randomDelay := 1 * time.Second
 		time.Sleep(delay + randomDelay)
 	}
 }

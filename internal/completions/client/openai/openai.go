@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/sourcegraph/sourcegraph/internal/completions/types"
 	"github.com/sourcegraph/sourcegraph/internal/httpcli"
+	"github.com/sourcegraph/sourcegraph/internal/rcache"
+	"github.com/sourcegraph/sourcegraph/internal/redispool"
 	"github.com/sourcegraph/sourcegraph/lib/errors"
 )
 
@@ -25,6 +28,38 @@ type openAIChatCompletionStreamClient struct {
 	cli         httpcli.Doer
 	accessToken string
 	endpoint    string
+}
+
+type TokenCounter interface {
+	TryAdder(ctx context.Context) error
+}
+
+func NewTokenCounter(rstore redispool.KeyValue) TokenCounter {
+	return &tokenCounter{rstore: rstore}
+}
+
+type tokenCounter struct {
+	rstore redispool.KeyValue
+}
+
+func (r *tokenCounter) TryAdder(ctx context.Context) (err error) {
+	rstore := r.rstore.WithContext(ctx)
+	key := "hellomox"
+	if _, err := rstore.Incr(key); err != nil {
+		return errors.Wrap(err, "failed to increment rate limit counter")
+	}
+
+	currentUsage, _ := rstore.Get(key).Int()
+	fmt.Println("this is the first usage", currentUsage)
+
+	if _, err := rstore.Incr(key); err != nil {
+		return errors.Wrap(err, "failed to increment rate limit counter")
+	}
+
+	currentUsage, _ = rstore.Get(key).Int()
+	fmt.Println("this is the second  usage bro ", currentUsage)
+
+	return nil
 }
 
 func (c *openAIChatCompletionStreamClient) Complete(
@@ -74,6 +109,24 @@ func (c *openAIChatCompletionStreamClient) Stream(
 ) error {
 	var resp *http.Response
 	var err error
+
+	tokenCounter := NewTokenCounter(redispool.Cache)
+	_ = tokenCounter.TryAdder(ctx)
+	fmt.Println(tokenCounter)
+
+	maker := rcache.NewWithTTL("", 1000)
+	maker.SetInt("model", 23)
+	val, _ := maker.GetInt("model")
+	fmt.Println("This is a val", val)
+
+	maker.SetInt("model", 45)
+	val, _ = maker.GetInt("model")
+	fmt.Println("This is a new val for me ", val)
+	maker.SetInt("please my man", 99999)
+	allKeys := maker.ListAllKeys()
+	fmt.Println("This is a new val for me ", val)
+	maker.SetInt("Theseeconsda", 3333)
+	fmt.Println("all Keys", allKeys)
 
 	defer (func() {
 		if resp != nil {

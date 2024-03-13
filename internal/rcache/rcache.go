@@ -3,6 +3,7 @@ package rcache
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 	"unicode/utf8"
@@ -86,6 +87,28 @@ func (r *Cache) SetWithTTL(key string, b []byte, ttl int) {
 	if err != nil {
 		log15.Warn("failed to execute redis command", "cmd", "SETEX", "error", err)
 	}
+}
+
+// SetInt sets an integer value by key.
+func (r *Cache) SetInt(key string, value int) {
+	// Convert int to byte slice for storage
+	valueStr := strconv.Itoa(value)
+	r.Set(key, []byte(valueStr))
+}
+
+// GetInt gets an integer value by key. Returns the value and a boolean indicating if the key exists.
+func (r *Cache) GetInt(key string) (int, bool) {
+	b, found := r.Get(key)
+	if !found {
+		return 0, false
+	}
+	// Convert byte slice to int
+	value, err := strconv.Atoi(string(b))
+	if err != nil {
+		log15.Warn("failed to convert value to int", "value", string(b), "error", err)
+		return 0, false
+	}
+	return value, true
 }
 
 func (r *Cache) Increase(key string) {
