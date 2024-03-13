@@ -11,12 +11,16 @@ import (
 	"sync"
 	"time"
 
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/ai/azopenai"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/pkoukk/tiktoken-go"
 	"golang.org/x/net/http2"
 
 	"github.com/sourcegraph/sourcegraph/internal/completions/types"
+	"github.com/sourcegraph/sourcegraph/internal/rcache"
 	"github.com/sourcegraph/sourcegraph/lib/errors"
 )
 
@@ -263,6 +267,9 @@ func streamChat(
 		entry, err := resp.ChatCompletionsStream.Read()
 		// stream is done
 		if errors.Is(err, io.EOF) {
+			var feature types.CompletionsFeature
+			feature = "chat_completions"
+			tokencalculator(inputText(requestParams.Messages), content, requestParams, feature)
 			return nil
 		}
 		// some other error has occurred
@@ -290,6 +297,58 @@ func streamChat(
 			}
 		}
 	}
+}
+
+func inputText(messages []types.Message) string {
+	allText := ""
+	for _, message := range messages {
+		allText += message.Text
+	}
+	return allText
+}
+
+func tokencalculator(inputText string, outputText string,
+	requestParams types.CompletionRequestParameters, feature types.CompletionsFeature) {
+	tokenCounterCache := rcache.NewWithTTL("LLMUsage", 1800)
+	fmt.Println("Starting token calculation")
+	encoding := "cl100k_base"
+	fmt.Println("Encoding set to:", encoding)
+	tke, err := tiktoken.GetEncoding(encoding)
+	if err != nil {
+		fmt.Println("Error getting encoding:", err)
+		return
+	}
+	inputTokenLen := len(tke.Encode(inputText, nil, nil))
+	fmt.Println("Input token length:", inputTokenLen)
+	outputTokenLen := len(tke.Encode(outputText, nil, nil))
+	fmt.Println("Output token length:", outputTokenLen)
+	// set a variable value like
+	var requestTypeDescription string
+
+	if requestParams.Stream != nil && *requestParams.Stream {
+		requestTypeDescription = "stream"
+	} else {
+		requestTypeDescription = "non-stream"
+	}
+	fmt.Println("Request type description:", requestTypeDescription)
+	baseKey := requestParams.Model + string(feature) + requestTypeDescription
+	fmt.Println("Base key:", baseKey)
+	inputTokenKey := baseKey + "input"
+	outputTokenKey := baseKey + "output"
+	fmt.Println("Input token key:", inputTokenKey)
+	fmt.Println("Output token key:", outputTokenKey)
+	inputTokens, _ := tokenCounterCache.GetInt(inputTokenKey)
+	outputTokens, _ := tokenCounterCache.GetInt(outputTokenKey)
+	fmt.Println("Current input tokens:", inputTokens)
+	fmt.Println("Current output tokens:", outputTokens)
+
+	newInputTokens := inputTokens + inputTokenLen
+	newOutputTokens := outputTokens + outputTokenLen
+	fmt.Println("New input tokens:", newInputTokens)
+	fmt.Println("New output tokens:", newOutputTokens)
+	tokenCounterCache.SetInt(inputTokenKey, newInputTokens)
+	tokenCounterCache.SetInt(outputTokenKey, newOutputTokens)
+	fmt.Println("Token calculation completed successfully")
 }
 
 // hasValidChatChoice checks to ensure there is a choice and the first one contains non-nil values
