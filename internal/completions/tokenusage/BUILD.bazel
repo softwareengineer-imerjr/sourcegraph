@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "tokenusage",
+    srcs = [
+        "tokenusage.go",
+    ],
+    importpath = "github.com/sourcegraph/sourcegraph/internal/completions/tokenusage",
+    visibility = [
+        "//cmd/cody-gateway:__subpackages__",
+        "//internal/completions/client/openai:__pkg__",
+    ],
+    deps = [
+        "//internal/completions/tokenizer",
+        "//internal/completions/types",
+        "//internal/httpcli",
+        "//internal/rcache",
+        "@com_github_pkoukk_tiktoken_go//:tiktoken-go",
+    ],
+)

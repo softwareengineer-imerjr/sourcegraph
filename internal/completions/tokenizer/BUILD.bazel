@@ -12,6 +12,7 @@ go_library(
     visibility = [
         "//cmd/cody-gateway:__subpackages__",
         "//internal/completions/client/openai:__pkg__",
+        "//internal/completions/tokenusage:__pkg__",
     ],
     deps = ["@com_github_pkoukk_tiktoken_go//:tiktoken-go"],
 )
