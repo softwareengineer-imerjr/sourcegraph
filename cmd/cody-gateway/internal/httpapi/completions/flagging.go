@@ -36,7 +36,7 @@ type flaggingResult struct {
 	promptTokenCount  int
 }
 
-func isFlaggedRequest(tk *tokenizer.Tokenizer, r flaggingRequest, cfg flaggingConfig) (*flaggingResult, error) {
+func isFlaggedRequest(tk *tokenizer.TiktokenTokenizer, r flaggingRequest, cfg flaggingConfig) (*flaggingResult, error) {
 	var reasons []string
 
 	prompt := strings.ToLower(r.FlattenedPrompt)

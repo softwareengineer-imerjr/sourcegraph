@@ -2,7 +2,6 @@ package tokenizer
 
 import (
 	_ "embed"
-	"fmt"
 	"strings"
 
 	"github.com/pkoukk/tiktoken-go"
@@ -31,7 +30,7 @@ func NewTokenizer(model string) (Tokenizer, error) {
 		// Returning a TiktokenTokenizer for models related to "azure" or "openai"
 		return NewOpenAITokenizer(model)
 	default:
-		return nil, fmt.Errorf("unsupported model: %s", model)
+		return nil, nil
 	}
 }
 

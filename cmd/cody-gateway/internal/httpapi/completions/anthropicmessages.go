@@ -38,7 +38,7 @@ func NewAnthropicMessagesHandler(
 	autoFlushStreamingResponses bool,
 ) (http.Handler, error) {
 	// Tokenizer only needs to be initialized once, and can be shared globally.
-	tokenizer, err := tokenizer.NewAnthropicClaudeTokenizer()
+	tokenizer, err := tokenizer.NewAnthropicClaudeTokenizer("anthropic/claude-2")
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ type anthropicMessagesResponseUsage struct {
 }
 
 type AnthropicMessagesHandlerMethods struct {
-	tokenizer      *tokenizer.Tokenizer
+	tokenizer      *tokenizer.TiktokenTokenizer
 	promptRecorder PromptRecorder
 	config         config.AnthropicConfig
 }
@@ -280,7 +280,7 @@ func (a *AnthropicMessagesHandlerMethods) parseResponseAndUsage(logger log.Logge
 	return promptUsage, completionUsage
 }
 
-func isFlaggedAnthropicMessagesRequest(tk *tokenizer.Tokenizer, r anthropicMessagesRequest, cfg config.AnthropicConfig) (*flaggingResult, error) {
+func isFlaggedAnthropicMessagesRequest(tk *tokenizer.TiktokenTokenizer, r anthropicMessagesRequest, cfg config.AnthropicConfig) (*flaggingResult, error) {
 	return isFlaggedRequest(tk,
 		flaggingRequest{
 			FlattenedPrompt: r.BuildPrompt(),

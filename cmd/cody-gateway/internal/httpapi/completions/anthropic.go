@@ -45,7 +45,7 @@ func NewAnthropicHandler(
 	autoFlushStreamingResponses bool,
 ) (http.Handler, error) {
 	// Tokenizer only needs to be initialized once, and can be shared globally.
-	anthropicTokenizer, err := tokenizer.NewAnthropicClaudeTokenizer()
+	anthropicTokenizer, err := tokenizer.NewAnthropicClaudeTokenizer("anthropic/claude-2")
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ type anthropicTokenCount struct {
 
 // GetPromptTokenCount computes the token count of the prompt exactly once using
 // the given tokenizer. It is not concurrency-safe.
-func (ar *anthropicRequest) GetPromptTokenCount(tk *tokenizer.Tokenizer) (int, error) {
+func (ar *anthropicRequest) GetPromptTokenCount(tk *tokenizer.TiktokenTokenizer) (int, error) {
 	if ar.promptTokens == nil {
 		tokens, err := tk.Tokenize(ar.Prompt)
 		ar.promptTokens = &anthropicTokenCount{
@@ -130,7 +130,7 @@ type anthropicResponse struct {
 }
 
 type AnthropicHandlerMethods struct {
-	anthropicTokenizer *tokenizer.Tokenizer
+	anthropicTokenizer *tokenizer.TiktokenTokenizer
 	promptRecorder     PromptRecorder
 	config             config.AnthropicConfig
 }
@@ -242,7 +242,7 @@ func (a *AnthropicHandlerMethods) parseResponseAndUsage(logger log.Logger, reqBo
 	return promptUsage, completionUsage
 }
 
-func isFlaggedAnthropicRequest(tk *tokenizer.Tokenizer, ar anthropicRequest, cfg config.AnthropicConfig) (*flaggingResult, error) {
+func isFlaggedAnthropicRequest(tk *tokenizer.TiktokenTokenizer, ar anthropicRequest, cfg config.AnthropicConfig) (*flaggingResult, error) {
 	// Only usage of chat models us currently flagged, so if the request
 	// is using another model, we skip other checks.
 	if ar.Model != "claude-2" && ar.Model != "claude-2.0" && ar.Model != "claude-2.1" && ar.Model != "claude-v1" {
