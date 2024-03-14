@@ -4,16 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 
-	"github.com/sourcegraph/sourcegraph/internal/completions/tokenizer"
 	"github.com/sourcegraph/sourcegraph/internal/completions/tokenusage"
 	"github.com/sourcegraph/sourcegraph/internal/completions/types"
 	"github.com/sourcegraph/sourcegraph/internal/httpcli"
-	"github.com/sourcegraph/sourcegraph/internal/redispool"
 	"github.com/sourcegraph/sourcegraph/lib/errors"
 )
 
@@ -29,38 +26,6 @@ type openAIChatCompletionStreamClient struct {
 	cli         httpcli.Doer
 	accessToken string
 	endpoint    string
-}
-
-type TokenCounter interface {
-	TryAdder(ctx context.Context) error
-}
-
-func NewTokenCounter(rstore redispool.KeyValue) TokenCounter {
-	return &tokenCounter{rstore: rstore}
-}
-
-type tokenCounter struct {
-	rstore redispool.KeyValue
-}
-
-func (r *tokenCounter) TryAdder(ctx context.Context) (err error) {
-	rstore := r.rstore.WithContext(ctx)
-	key := "hellomox"
-	if _, err := rstore.Incr(key); err != nil {
-		return errors.Wrap(err, "failed to increment rate limit counter")
-	}
-
-	currentUsage, _ := rstore.Get(key).Int()
-	fmt.Println("this is the first usage", currentUsage)
-
-	if _, err := rstore.Incr(key); err != nil {
-		return errors.Wrap(err, "failed to increment rate limit counter")
-	}
-
-	currentUsage, _ = rstore.Get(key).Int()
-	fmt.Println("this is the second  usage bro ", currentUsage)
-
-	return nil
 }
 
 func (c *openAIChatCompletionStreamClient) Complete(
@@ -111,21 +76,11 @@ func (c *openAIChatCompletionStreamClient) Stream(
 	var resp *http.Response
 	var err error
 
-	tokenCounter := NewTokenCounter(redispool.Cache)
-	_ = tokenCounter.TryAdder(ctx)
-	fmt.Println(tokenCounter)
-
-	tokenizer, err := tokenizer.NewAnthropicClaudeTokenizer()
-	if err != nil {
-		return nil
-	}
-	fmt.Println("tokenizer for me ", tokenizer)
 	defer (func() {
 		if resp != nil {
 			resp.Body.Close()
 		}
 	})()
-
 	if feature == types.CompletionsFeatureCode {
 		resp, err = c.makeCompletionRequest(ctx, requestParams, true)
 	} else {
