@@ -18,6 +18,7 @@ import (
 
 	"github.com/sourcegraph/log"
 
+	"github.com/sourcegraph/sourcegraph/internal/completions/tokenusage"
 	"github.com/sourcegraph/sourcegraph/internal/conf"
 	"github.com/sourcegraph/sourcegraph/internal/conf/deploy"
 	"github.com/sourcegraph/sourcegraph/internal/database"
@@ -423,20 +424,8 @@ func getAndMarshalRepoMetadataUsageJSON(ctx context.Context, db database.DB) (_ 
 }
 
 func getLLMUsageData() (_ json.RawMessage, err error) {
-	tokenCounterCache := rcache.NewWithTTL("LLMUsage", 1800)
-	allKeys := tokenCounterCache.ListAllKeys()
-	usageData := make(map[string]int)
-	for _, key := range allKeys {
-		value, found := tokenCounterCache.GetInt(key)
-		if !found {
-			// Handle the case where the key is not found or there's an error in conversion
-			continue // Skip this key and move to the next
-		}
-		usageData[key] = value
-	}
-	fmt.Println("here are my keys", allKeys)
-	fmt.Println("here is my usage data", usageData)
-
+	tokenUsageManager := tokenusage.NewTokenUsageManager()
+	usageData, _ := tokenUsageManager.GetAllTokenUsageData()
 	return json.Marshal(usageData)
 }
 

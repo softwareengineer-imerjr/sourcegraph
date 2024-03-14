@@ -2,6 +2,7 @@ package tokenusage
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/sourcegraph/sourcegraph/internal/completions/tokenizer"
 	"github.com/sourcegraph/sourcegraph/internal/rcache"
@@ -50,4 +51,22 @@ func (m *TokenUsageManager) updateTokenCounts(key string, tokenCount int) {
 
 func (m *TokenUsageManager) GetTokenCounts(key string) (int, bool) {
 	return m.Cache.GetInt(key)
+}
+
+func (m *TokenUsageManager) GetAllTokenUsageData() (map[string]int, error) {
+	allKeys := m.Cache.ListAllKeys()
+	usageData := make(map[string]int)
+	for _, key := range allKeys {
+		// Removing redundant prefix from the key
+		cleanedKey := strings.SplitN(key, "LLMUsage:", 2)[1]
+		value, found := m.Cache.GetInt(cleanedKey)
+		if !found {
+			// Skip keys that are not found or have conversion errors
+			continue
+		}
+		usageData[cleanedKey] = value
+	}
+	fmt.Println("allkeys", allKeys)
+	fmt.Println("usage", usageData)
+	return usageData, nil
 }
