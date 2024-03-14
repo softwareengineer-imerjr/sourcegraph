@@ -94,8 +94,11 @@ func (a *anthropicClient) Stream(
 			return err
 		}
 	}
-	tokencalculator(inputText(requestParams.Messages), completedString, requestParams, feature)
-	return dec.Err()
+	if dec.Err() != nil {
+		return dec.Err()
+	}
+	err = calculateTokenUsage(inputText(requestParams.Messages), completedString, ("anthropic/" + requestParams.Model), string(feature), true)
+	return err
 }
 
 func inputText(messages []types.Message) string {
@@ -106,45 +109,34 @@ func inputText(messages []types.Message) string {
 	return allText
 }
 
-func tokencalculator(inputText string, outputText string,
-	requestParams types.CompletionRequestParameters, feature types.CompletionsFeature) {
-
+func calculateTokenUsage(inputText, outputText, model, feature string, stream bool) error {
 	tokenCounterCache := rcache.NewWithTTL("LLMUsage", 1800)
-	anthropicTokenizer, _ := tokenizer.NewAnthropicClaudeTokenizer()
-	fmt.Println("Starting token calculation")
-	inputToken, _ := anthropicTokenizer.Tokenize(inputText)
-	inputTokenLen := len(inputToken)
-	fmt.Println("Input token length:", inputTokenLen)
-	outputToken, _ := anthropicTokenizer.Tokenize(outputText)
-	outputTokenLen := len(outputToken)
-	fmt.Println("Output token length:", outputTokenLen)
-	// set a variable value like
-	var requestTypeDescription string
-
-	if requestParams.Stream != nil && *requestParams.Stream {
-		requestTypeDescription = "stream"
-	} else {
-		requestTypeDescription = "non-stream"
+	tokenizer, err := tokenizer.NewTokenizer("anthropic/claude-2")
+	if err != nil {
+		return err
 	}
-	fmt.Println("Request type description:", requestTypeDescription)
-	baseKey := requestParams.Model + string(feature) + requestTypeDescription
-	fmt.Println("Base key:", baseKey)
+
+	inputTokens, _ := tokenizer.Tokenize(inputText)
+	outputTokens, _ := tokenizer.Tokenize(outputText)
+
+	requestTypeDescription := "non-stream"
+	if stream {
+		requestTypeDescription = "stream"
+	}
+
+	baseKey := fmt.Sprintf("%s:%s:%s:", model, feature, requestTypeDescription)
 	inputTokenKey := baseKey + "input"
 	outputTokenKey := baseKey + "output"
-	fmt.Println("Input token key:", inputTokenKey)
-	fmt.Println("Output token key:", outputTokenKey)
-	inputTokens, _ := tokenCounterCache.GetInt(inputTokenKey)
-	outputTokens, _ := tokenCounterCache.GetInt(outputTokenKey)
-	fmt.Println("Current input tokens:", inputTokens)
-	fmt.Println("Current output tokens:", outputTokens)
 
-	newInputTokens := inputTokens + inputTokenLen
-	newOutputTokens := outputTokens + outputTokenLen
-	fmt.Println("New input tokens:", newInputTokens)
-	fmt.Println("New output tokens:", newOutputTokens)
+	currentInputTokens, _ := tokenCounterCache.GetInt(inputTokenKey)
+	currentOutputTokens, _ := tokenCounterCache.GetInt(outputTokenKey)
+
+	newInputTokens := currentInputTokens + len(inputTokens)
+	newOutputTokens := currentOutputTokens + len(outputTokens)
+
 	tokenCounterCache.SetInt(inputTokenKey, newInputTokens)
 	tokenCounterCache.SetInt(outputTokenKey, newOutputTokens)
-	fmt.Println("Token calculation completed successfully")
+	return nil
 }
 
 func (a *anthropicClient) makeRequest(ctx context.Context, requestParams types.CompletionRequestParameters, stream bool) (*http.Response, error) {

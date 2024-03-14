@@ -1181,6 +1181,7 @@ func TestSerializeRepoMetadataUsage(t *testing.T) {
 				}
 			}
 		}`),
+		LlmUsage: nil,
 	}
 
 	now := time.Now()
@@ -1214,6 +1215,7 @@ func TestSerializeRepoMetadataUsage(t *testing.T) {
 		"code_host_integration_usage": null,
 		"ide_extensions_usage": null,
 		"migrated_extensions_usage": null,
+		"llm_usage": null,
 		"own_usage": null,
 		"repo_metadata_usage": {
 			"summary": {

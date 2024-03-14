@@ -434,6 +434,8 @@ func getLLMUsageData() (_ json.RawMessage, err error) {
 		}
 		usageData[key] = value
 	}
+	fmt.Println("here are my keys", allKeys)
+	fmt.Println("here is my usage data", usageData)
 
 	return json.Marshal(usageData)
 }

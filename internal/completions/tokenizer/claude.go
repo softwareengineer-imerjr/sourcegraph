@@ -26,7 +26,7 @@ type claudeEncodingFile struct {
 
 // NewAnthropicClaudeTokenizer is a tokenizer that emulates Anthropic's
 // tokenization for Claude.
-func NewAnthropicClaudeTokenizer() (*Tokenizer, error) {
+func NewAnthropicClaudeTokenizer() (*TiktokenTokenizer, error) {
 	var claudeEncodingFile claudeEncodingFile
 	err := json.Unmarshal([]byte(claudeJSON), &claudeEncodingFile)
 	if err != nil {
@@ -60,7 +60,7 @@ func NewAnthropicClaudeTokenizer() (*Tokenizer, error) {
 		specialTokensSet[k] = true
 	}
 
-	return &Tokenizer{
+	return &TiktokenTokenizer{
 		tk: tiktoken.NewTiktoken(bpe, claudeEncoding, specialTokensSet),
 	}, nil
 }
