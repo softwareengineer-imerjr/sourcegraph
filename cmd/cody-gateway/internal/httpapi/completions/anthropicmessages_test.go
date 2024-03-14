@@ -29,7 +29,7 @@ func TestIsFlaggedAnthropicMessagesRequest(t *testing.T) {
 		ResponseTokenBlockingLimit:     1000,
 		AllowedPromptPatterns:          []string{strings.ToLower(validPreamble)},
 	}
-	tk, err := tokenizer.NewAnthropicClaudeTokenizer()
+	tk, err := tokenizer.NewAnthropicClaudeTokenizer("anthropic/claude-2")
 	require.NoError(t, err)
 
 	t.Run("works for known preamble", func(t *testing.T) {
@@ -139,7 +139,7 @@ func TestIsFlaggedAnthropicMessagesRequest(t *testing.T) {
 }
 
 func TestAnthropicMessagesRequestJSON(t *testing.T) {
-	_, err := tokenizer.NewAnthropicClaudeTokenizer()
+	_, err := tokenizer.NewAnthropicClaudeTokenizer("anthropic/claude-2")
 	require.NoError(t, err)
 
 	r := anthropicMessagesRequest{Model: "anthropic/claude-3-sonnet-20240229", Messages: []anthropicMessage{

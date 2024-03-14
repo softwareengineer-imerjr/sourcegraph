@@ -30,7 +30,7 @@ func TestIsFlaggedAnthropicRequest(t *testing.T) {
 		ResponseTokenBlockingLimit:     1000,
 		AllowedPromptPatterns:          []string{strings.ToLower(validPreamble)},
 	}
-	tk, err := tokenizer.NewAnthropicClaudeTokenizer()
+	tk, err := tokenizer.NewAnthropicClaudeTokenizer("anthropic/claude-2")
 	require.NoError(t, err)
 
 	t.Run("missing known preamble", func(t *testing.T) {
@@ -113,7 +113,7 @@ func TestIsFlaggedAnthropicRequest(t *testing.T) {
 }
 
 func TestAnthropicRequestJSON(t *testing.T) {
-	tk, err := tokenizer.NewAnthropicClaudeTokenizer()
+	tk, err := tokenizer.NewAnthropicClaudeTokenizer("anthropic/claude-2")
 	require.NoError(t, err)
 
 	ar := anthropicRequest{Prompt: "Hello world"}
@@ -130,7 +130,7 @@ func TestAnthropicRequestJSON(t *testing.T) {
 }
 
 func TestAnthropicRequestGetPromptTokenCount(t *testing.T) {
-	tk, err := tokenizer.NewAnthropicClaudeTokenizer()
+	tk, err := tokenizer.NewAnthropicClaudeTokenizer("anthropic/claude-2")
 	require.NoError(t, err)
 
 	originalRequest := anthropicRequest{Prompt: "Hello world"}
