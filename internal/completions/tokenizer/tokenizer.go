@@ -2,6 +2,8 @@ package tokenizer
 
 import (
 	_ "embed"
+	"fmt"
+	"strings"
 
 	"github.com/pkoukk/tiktoken-go"
 )
@@ -12,7 +14,8 @@ type Tokenizer interface {
 }
 
 type TiktokenTokenizer struct {
-	tk *tiktoken.Tiktoken
+	tk    *tiktoken.Tiktoken
+	model string
 }
 
 func (t *TiktokenTokenizer) Tokenize(text string) ([]int, error) {
@@ -21,25 +24,21 @@ func (t *TiktokenTokenizer) Tokenize(text string) ([]int, error) {
 
 // NewTokenizer returns a Tokenizer instance based on the provided model.
 func NewTokenizer(model string) (Tokenizer, error) {
-	switch model {
-	case "anthropic/claude-2":
-		// Assuming NewAnthropicClaudeTokenizer() is correctly implemented elsewhere
-		return NewAnthropicClaudeTokenizer()
-	case "openai":
-		// Example: Returning a TiktokenTokenizer for the "openai/gpt-3" model
-		// Initialize your tiktoken.Tiktoken instance as needed
-		return NewOpenAITokenizer()
+	switch {
+	case strings.Contains(model, "anthropic"):
+		return NewAnthropicClaudeTokenizer(model)
+	case strings.Contains(model, "azure"), strings.Contains(model, "openai"):
+		// Returning a TiktokenTokenizer for models related to "azure" or "openai"
+		return NewOpenAITokenizer(model)
 	default:
-		return nil, nil
+		return nil, fmt.Errorf("unsupported model: %s", model)
 	}
 }
 
-// NewAnthropicClaudeTokenizer is a tokenizer that emulates Anthropic's
-// tokenization for Claude.
-func NewOpenAITokenizer() (*TiktokenTokenizer, error) {
-	encoding := "cl100k_base"
-	tke, _ := tiktoken.GetEncoding(encoding)
+func NewOpenAITokenizer(model string) (*TiktokenTokenizer, error) {
+	tkm, _ := tiktoken.EncodingForModel(model)
 	return &TiktokenTokenizer{
-		tk: tke,
+		tk:    tkm,
+		model: model,
 	}, nil
 }

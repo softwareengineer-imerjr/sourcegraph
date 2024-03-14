@@ -91,7 +91,7 @@ Assistant: My answer is (`,
 }
 
 func TestTokenize(t *testing.T) {
-	tk, err := tokenizer.NewAnthropicClaudeTokenizer()
+	tk, err := tokenizer.NewAnthropicClaudeTokenizer("testModel")
 	require.NoError(t, err)
 
 	for i, sample := range sampleTexts {
