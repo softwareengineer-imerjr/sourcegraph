@@ -8,6 +8,8 @@ go_library(
     importpath = "github.com/sourcegraph/sourcegraph/internal/completions/tokenusage",
     visibility = [
         "//cmd/cody-gateway:__subpackages__",
+        "//internal/completions/client/anthropic:__pkg__",
+        "//internal/completions/client/azureopenai:__pkg__",
         "//internal/completions/client/openai:__pkg__",
     ],
     deps = [
