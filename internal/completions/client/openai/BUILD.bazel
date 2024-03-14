@@ -11,6 +11,7 @@ go_library(
     visibility = ["//:__subpackages__"],
     deps = [
         "//internal/completions/tokenizer",
+        "//internal/completions/tokenusage",
         "//internal/completions/types",
         "//internal/httpcli",
         "//internal/rcache",

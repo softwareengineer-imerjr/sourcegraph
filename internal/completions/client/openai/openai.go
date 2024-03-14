@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/sourcegraph/sourcegraph/internal/completions/tokenizer"
+	"github.com/sourcegraph/sourcegraph/internal/completions/tokenusage"
 	"github.com/sourcegraph/sourcegraph/internal/completions/types"
 	"github.com/sourcegraph/sourcegraph/internal/httpcli"
-	"github.com/sourcegraph/sourcegraph/internal/rcache"
 	"github.com/sourcegraph/sourcegraph/internal/redispool"
 	"github.com/sourcegraph/sourcegraph/lib/errors"
 )
@@ -172,39 +172,9 @@ func (c *openAIChatCompletionStreamClient) Stream(
 	if dec.Err() != nil {
 		return dec.Err()
 	}
-
-	err = calculateTokenUsage(inputText(requestParams.Messages), ev.Completion, ("openai" + requestParams.Model), string(feature), true)
+	tokenManager := tokenusage.NewTokenUsageManager()
+	err = tokenManager.TokenizeAndCalculateUsage(inputText(requestParams.Messages), ev.Completion, "openai", string(feature), true)
 	return err
-}
-
-func calculateTokenUsage(inputText, outputText, model, feature string, stream bool) error {
-	tokenCounterCache := rcache.NewWithTTL("LLMUsage", 1800)
-	tokenizer, err := tokenizer.NewTokenizer("openai")
-	if err != nil {
-		return err
-	}
-
-	inputTokens, _ := tokenizer.Tokenize(inputText)
-	outputTokens, _ := tokenizer.Tokenize(outputText)
-
-	requestTypeDescription := "non-stream"
-	if stream {
-		requestTypeDescription = "stream"
-	}
-
-	baseKey := fmt.Sprintf("%s:%s:%s", model, feature, requestTypeDescription)
-	inputTokenKey := baseKey + "input"
-	outputTokenKey := baseKey + "output"
-
-	currentInputTokens, _ := tokenCounterCache.GetInt(inputTokenKey)
-	currentOutputTokens, _ := tokenCounterCache.GetInt(outputTokenKey)
-
-	newInputTokens := currentInputTokens + len(inputTokens)
-	newOutputTokens := currentOutputTokens + len(outputTokens)
-
-	tokenCounterCache.SetInt(inputTokenKey, newInputTokens)
-	tokenCounterCache.SetInt(outputTokenKey, newOutputTokens)
-	return nil
 }
 
 func inputText(messages []types.Message) string {
