@@ -53,7 +53,7 @@ func (m *TokenUsageManager) GetTokenCounts(key string) (int, bool) {
 	return m.Cache.GetInt(key)
 }
 
-func (m *TokenUsageManager) GetAllTokenUsageData() (map[string]int, error) {
+func (m *TokenUsageManager) GetAllTokenUsageData() map[string]int {
 	allKeys := m.Cache.ListAllKeys()
 	usageData := make(map[string]int)
 	for _, key := range allKeys {
@@ -68,5 +68,5 @@ func (m *TokenUsageManager) GetAllTokenUsageData() (map[string]int, error) {
 	}
 	fmt.Println("allkeys", allKeys)
 	fmt.Println("usage", usageData)
-	return usageData, nil
+	return usageData
 }

@@ -60,7 +60,11 @@ func (c *openAIChatCompletionStreamClient) Complete(
 		// Empty response.
 		return &types.CompletionResponse{}, nil
 	}
-
+	tokenManager := tokenusage.NewTokenUsageManager()
+	err = tokenManager.TokenizeAndCalculateUsage(inputText(requestParams.Messages), response.Choices[0].Text, "openai", string(feature), true)
+	if err != nil {
+		return nil, err
+	}
 	return &types.CompletionResponse{
 		Completion: response.Choices[0].Text,
 		StopReason: response.Choices[0].FinishReason,

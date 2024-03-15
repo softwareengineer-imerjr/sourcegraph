@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -391,7 +392,7 @@ func getAndMarshalRepoMetadataUsageJSON(ctx context.Context, db database.DB) (_ 
 
 func getLLMUsageData() (_ json.RawMessage, err error) {
 	tokenUsageManager := tokenusage.NewTokenUsageManager()
-	usageData, _ := tokenUsageManager.GetAllTokenUsageData()
+	usageData := tokenUsageManager.GetAllTokenUsageData()
 	return json.Marshal(usageData)
 }
 
@@ -875,13 +876,13 @@ func Start(logger log.Logger, db database.DB) {
 	}
 	started = true
 
-	const delay = 1 * time.Minute
+	const delay = 30 * time.Minute
 	scopedLog := logger.Scoped("updatecheck")
 	for {
 		check(scopedLog, db)
 
 		// Randomize sleep to prevent thundering herds.
-		randomDelay := 1 * time.Second
+		randomDelay := time.Duration(rand.Intn(600)) * time.Second
 		time.Sleep(delay + randomDelay)
 	}
 }

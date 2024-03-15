@@ -45,6 +45,12 @@ func (a *anthropicClient) Complete(
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		return nil, err
 	}
+	tokenManager := tokenusage.NewTokenUsageManager()
+	err = tokenManager.TokenizeAndCalculateUsage(inputText(requestParams.Messages), response.Completion, "anthropic/"+requestParams.Model, string(feature), true)
+	if err != nil {
+		return nil, err
+	}
+
 	return &types.CompletionResponse{
 		Completion: response.Completion,
 		StopReason: response.StopReason,
