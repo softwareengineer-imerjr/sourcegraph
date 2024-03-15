@@ -132,7 +132,7 @@ func (c *openAIChatCompletionStreamClient) Stream(
 		return dec.Err()
 	}
 	tokenManager := tokenusage.NewTokenUsageManager()
-	err = tokenManager.TokenizeAndCalculateUsage(inputText(requestParams.Messages), ev.Completion, "openai", string(feature), true)
+	err = tokenManager.TokenizeAndCalculateUsage(inputText(requestParams.Messages), ev.Completion, "openai/"+requestParams.Model, string(feature), true)
 	return err
 }
 

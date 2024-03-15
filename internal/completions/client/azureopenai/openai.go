@@ -219,7 +219,7 @@ func streamAutocomplete(
 		// stream is done
 		if errors.Is(err, io.EOF) {
 			tokenManager := tokenusage.NewTokenUsageManager()
-			err = tokenManager.TokenizeAndCalculateUsage(inputText(requestParams.Messages), content, "openai", "code_completions", true)
+			err = tokenManager.TokenizeAndCalculateUsage(inputText(requestParams.Messages), content, "azure/"+requestParams.Model, "code_completions", true)
 			return err
 		}
 		// some other error has occured
@@ -267,7 +267,7 @@ func streamChat(
 		// stream is done
 		if errors.Is(err, io.EOF) {
 			tokenManager := tokenusage.NewTokenUsageManager()
-			err = tokenManager.TokenizeAndCalculateUsage(inputText(requestParams.Messages), content, "azure", "chat_completions", true)
+			err = tokenManager.TokenizeAndCalculateUsage(inputText(requestParams.Messages), content, "azure/"+requestParams.Model, "chat_completions", true)
 			return err
 		}
 		// some other error has occurred
