@@ -21,5 +21,4 @@ go_library(
 go_test(
     name = "tokenusage_test",
     srcs = ["tokenusage_test.go"],
-    deps = [":tokenusage"],
 )

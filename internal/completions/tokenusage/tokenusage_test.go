@@ -42,5 +42,3 @@ func (m *MockCache) ListAllKeys() []string {
 	}
 	return keys
 }
-
-// The rest of your test code remains unchanged.
