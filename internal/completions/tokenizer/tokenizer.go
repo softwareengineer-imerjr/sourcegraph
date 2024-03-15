@@ -35,6 +35,9 @@ func NewTokenizer(model string) (Tokenizer, error) {
 }
 
 func NewOpenAITokenizer(model string) (*TiktokenTokenizer, error) {
+	// Remove "azure" or "openai" prefix from the model string
+	model = strings.NewReplacer("azure/", "", "openai/", "").Replace(model)
+
 	tkm, _ := tiktoken.EncodingForModel(model)
 	return &TiktokenTokenizer{
 		tk:    tkm,

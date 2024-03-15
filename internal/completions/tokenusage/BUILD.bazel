@@ -21,4 +21,8 @@ go_library(
 go_test(
     name = "tokenusage_test",
     srcs = ["tokenusage_test.go"],
+    deps = [
+        "//internal/completions/tokenusage",
+        "//internal/rcache",
+    ],
 )

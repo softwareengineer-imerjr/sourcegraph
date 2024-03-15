@@ -89,7 +89,7 @@ func (r *Cache) SetWithTTL(key string, b []byte, ttl int) {
 	}
 }
 
-// SetInt sets an integer value by key.
+// SetInt stores an integer value under the specified key in the cache
 func (r *Cache) SetInt(key string, value int) {
 	// Convert int to byte slice for storage
 	valueStr := strconv.Itoa(value)

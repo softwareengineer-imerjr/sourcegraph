@@ -61,7 +61,7 @@ func (c *openAIChatCompletionStreamClient) Complete(
 		return &types.CompletionResponse{}, nil
 	}
 	tokenManager := tokenusage.NewTokenUsageManager()
-	err = tokenManager.TokenizeAndCalculateUsage(inputText(requestParams.Messages), response.Choices[0].Text, "openai", string(feature), true)
+	err = tokenManager.TokenizeAndCalculateUsage(inputText(requestParams.Messages), response.Choices[0].Text, "openai/"+requestParams.Model, string(feature), true)
 	if err != nil {
 		return nil, err
 	}
