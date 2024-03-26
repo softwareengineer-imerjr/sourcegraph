@@ -12,10 +12,10 @@ tasks:
   # - buildifier:
   #     queue: aspect-small
   # # Checks that BUILD file content is up-to-date with sources
-  # - gazelle:
-  #     queue: aspect-small
-  #     target: //:configure
-  #     fix_target: //:configure
+  - gazelle:
+      queue: aspect-small
+      target: //:configure
+      fix_target: //:configure
   # # Checks that all tests are passing
   # - test:
   #     targets:
