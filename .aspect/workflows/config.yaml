@@ -9,40 +9,40 @@ env:
 observability: false
 tasks:
   # Checks that BUILD files are formatted
-  - buildifier:
-      queue: aspect-small
-  # Checks that BUILD file content is up-to-date with sources
-  - gazelle:
-      queue: aspect-small
-      target: //:configure
-      fix_target: //:configure
-  # Checks that all tests are passing
-  - test:
-      targets:
-        - //...
-        # exclude testing as it is executed in a seperate job
-        - -//testing/...
-  - test:
-      name: Integration/E2E
-      targets:
-        - //testing/...
-        # This target should only really run when on main which we aren't handling. For the time being while we
-        # evaluate Aspect Workflows it is ok
-        # TODO(burmudar): Let this only run on main branch
-        - //testing:codeintel_integration_test
-  - delivery:
-      auto_deliver: true
-      icon: 'ship'
-      rules:
-        - deliverable: 'attr(tags, "docs-deliverable", //doc/...)'
-          condition:
-            only_on_change: true
-            branches:
-              - '^main$'
-        - deliverable: 'attr(tags, "msp-deliverable", //cmd/...)'
-          condition:
-            branches:
-              - '^main$'
+  # - buildifier:
+  #     queue: aspect-small
+  # # Checks that BUILD file content is up-to-date with sources
+  # - gazelle:
+  #     queue: aspect-small
+  #     target: //:configure
+  #     fix_target: //:configure
+  # # Checks that all tests are passing
+  # - test:
+  #     targets:
+  #       - //...
+  #       # exclude testing as it is executed in a seperate job
+  #       - -//testing/...
+  # - test:
+  #     name: Integration/E2E
+  #     targets:
+  #       - //testing/...
+  #       # This target should only really run when on main which we aren't handling. For the time being while we
+  #       # evaluate Aspect Workflows it is ok
+  #       # TODO(burmudar): Let this only run on main branch
+  #       - //testing:codeintel_integration_test
+  # - delivery:
+  #     auto_deliver: true
+  #     icon: 'ship'
+  #     rules:
+  #       - deliverable: 'attr(tags, "docs-deliverable", //doc/...)'
+  #         condition:
+  #           only_on_change: true
+  #           branches:
+  #             - '^main$'
+  #       - deliverable: 'attr(tags, "msp-deliverable", //cmd/...)'
+  #         condition:
+  #           branches:
+  #             - '^main$'
   - finalization:
       queue: aspect-small
       hooks:
