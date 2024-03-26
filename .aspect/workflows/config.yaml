@@ -46,7 +46,7 @@ tasks:
   - finalization:
       queue: aspect-small
       hooks:
-        - command: "echo 'We did it reddit!'"
+        - command: "./dev/ci/trigger-build-metrics-pipeline.sh"
           soft_fail: true
           type: "after_task"
 
