@@ -45,3 +45,8 @@ tasks:
               - '^main$'
   - finalization:
       queue: aspect-small
+      hooks:
+        - command: "echo 'We did it reddit!'"
+          soft_fail: true
+          type: "after_task"
+
