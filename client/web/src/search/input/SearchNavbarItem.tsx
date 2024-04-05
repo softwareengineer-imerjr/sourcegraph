@@ -1,9 +1,9 @@
-import React, { useCallback, useRef, useEffect } from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 
 import { useLocation, useNavigate } from 'react-router-dom'
 import shallow from 'zustand/shallow'
 
-import { SearchBox, LegacyToggles } from '@sourcegraph/branded'
+import { SearchBox } from '@sourcegraph/branded'
 import { Toggles } from '@sourcegraph/branded/src/search-ui/input/toggles/Toggles'
 import type { PlatformContextProps } from '@sourcegraph/shared/src/platform/context'
 import type { SearchContextInputProps, SubmitSearchParameters } from '@sourcegraph/shared/src/search'
@@ -12,7 +12,7 @@ import type { TelemetryProps } from '@sourcegraph/shared/src/telemetry/telemetry
 import { Form } from '@sourcegraph/wildcard'
 
 import type { AuthenticatedUser } from '../../auth'
-import { useNavbarQueryState, setSearchCaseSensitivity } from '../../stores'
+import { setSearchCaseSensitivity, useNavbarQueryState } from '../../stores'
 import { type NavbarQueryState, setSearchMode, setSearchPatternType } from '../../stores/navbarSearchQueryState'
 import { useV2QueryInput } from '../useV2QueryInput'
 
@@ -28,7 +28,6 @@ interface Props
     isSourcegraphDotCom: boolean
     isSearchAutoFocusRequired?: boolean
     isRepositoryRelatedPage?: boolean
-    showKeywordSearchToggle?: boolean
 }
 
 const selectQueryState = ({
@@ -100,36 +99,18 @@ export const SearchNavbarItem: React.FunctionComponent<React.PropsWithChildren<P
                     selectedSearchContextSpec={props.selectedSearchContextSpec}
                     className="flex-grow-1"
                 >
-                    {props.showKeywordSearchToggle ? (
-                        <Toggles
-                            patternType={searchPatternType}
-                            caseSensitive={searchCaseSensitivity}
-                            setPatternType={setSearchPatternType}
-                            setCaseSensitivity={setSearchCaseSensitivity}
-                            searchMode={searchMode}
-                            setSearchMode={setSearchMode}
-                            navbarSearchQuery={queryState.query}
-                            submitSearch={submitSearchOnChange}
-                            structuralSearchDisabled={
-                                window.context?.experimentalFeatures?.structuralSearch !== 'enabled'
-                            }
-                            telemetryService={props.telemetryService}
-                        />
-                    ) : (
-                        <LegacyToggles
-                            patternType={searchPatternType}
-                            caseSensitive={searchCaseSensitivity}
-                            setPatternType={setSearchPatternType}
-                            setCaseSensitivity={setSearchCaseSensitivity}
-                            searchMode={searchMode}
-                            setSearchMode={setSearchMode}
-                            navbarSearchQuery={queryState.query}
-                            submitSearch={submitSearchOnChange}
-                            structuralSearchDisabled={
-                                window.context?.experimentalFeatures?.structuralSearch !== 'enabled'
-                            }
-                        />
-                    )}
+                    <Toggles
+                        patternType={searchPatternType}
+                        caseSensitive={searchCaseSensitivity}
+                        setPatternType={setSearchPatternType}
+                        setCaseSensitivity={setSearchCaseSensitivity}
+                        searchMode={searchMode}
+                        setSearchMode={setSearchMode}
+                        navbarSearchQuery={queryState.query}
+                        submitSearch={submitSearchOnChange}
+                        structuralSearchDisabled={window.context?.experimentalFeatures?.structuralSearch !== 'enabled'}
+                        telemetryService={props.telemetryService}
+                    />
                 </LazyV2SearchInput>
             </Form>
         )
@@ -160,7 +141,6 @@ export const SearchNavbarItem: React.FunctionComponent<React.PropsWithChildren<P
                 hideHelpButton={false}
                 showSearchHistory={true}
                 recentSearches={recentSearches}
-                showKeywordSearchToggle={props.showKeywordSearchToggle}
             />
         </Form>
     )

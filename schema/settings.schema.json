@@ -223,11 +223,6 @@
             "pointer": true
           }
         },
-        "keywordSearch": {
-          "description": "Whether to enable the 'keyword search' language improvement",
-          "type": "boolean",
-          "default": true
-        },
         "syntacticIndexing": {
           "description": "Whether syntactic indexing is enabled",
           "type": "boolean",

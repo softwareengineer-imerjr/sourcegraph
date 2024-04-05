@@ -22,7 +22,6 @@ import { SearchButton } from './SearchButton'
 import { SearchContextDropdown } from './SearchContextDropdown'
 import { SearchHelpDropdownButton } from './SearchHelpDropdownButton'
 import { SearchHistoryDropdown } from './SearchHistoryDropdown'
-import { LegacyToggles } from './toggles'
 import { Toggles, type TogglesProps } from './toggles/Toggles'
 
 import styles from './SearchBox.module.scss'
@@ -58,7 +57,6 @@ export interface SearchBoxProps
     showSearchHistory?: boolean
 
     recentSearches?: RecentSearch[]
-    showKeywordSearchToggle?: boolean
 }
 
 export const SearchBox: FC<SearchBoxProps> = props => {
@@ -188,34 +186,19 @@ export const SearchBox: FC<SearchBoxProps> = props => {
                         onSelectSearchFromHistory={onInlineSearchHistorySelect}
                         enableJumpToSuggestion={true}
                     />
-                    {props.showKeywordSearchToggle ? (
-                        <Toggles
-                            patternType={props.patternType}
-                            setPatternType={props.setPatternType}
-                            caseSensitive={props.caseSensitive}
-                            setCaseSensitivity={props.setCaseSensitivity}
-                            searchMode={props.searchMode}
-                            setSearchMode={props.setSearchMode}
-                            submitSearch={props.submitSearchOnToggle}
-                            navbarSearchQuery={queryState.query}
-                            className={styles.searchBoxToggles}
-                            structuralSearchDisabled={props.structuralSearchDisabled}
-                            telemetryService={props.telemetryService}
-                        />
-                    ) : (
-                        <LegacyToggles
-                            patternType={props.patternType}
-                            setPatternType={props.setPatternType}
-                            caseSensitive={props.caseSensitive}
-                            setCaseSensitivity={props.setCaseSensitivity}
-                            searchMode={props.searchMode}
-                            setSearchMode={props.setSearchMode}
-                            submitSearch={props.submitSearchOnToggle}
-                            navbarSearchQuery={queryState.query}
-                            className={styles.searchBoxToggles}
-                            structuralSearchDisabled={props.structuralSearchDisabled}
-                        />
-                    )}
+                    <Toggles
+                        patternType={props.patternType}
+                        setPatternType={props.setPatternType}
+                        caseSensitive={props.caseSensitive}
+                        setCaseSensitivity={props.setCaseSensitivity}
+                        searchMode={props.searchMode}
+                        setSearchMode={props.setSearchMode}
+                        submitSearch={props.submitSearchOnToggle}
+                        navbarSearchQuery={queryState.query}
+                        className={styles.searchBoxToggles}
+                        structuralSearchDisabled={props.structuralSearchDisabled}
+                        telemetryService={props.telemetryService}
+                    />
                 </div>
             </div>
             <div className={styles.searchBoxButton}>
