@@ -90,7 +90,7 @@ func bazelPushImagesCmd(c Config, isCandidate bool, opts ...bk.StepOpt) func(*bk
 	if isCandidate {
 		stepName = ":bazel::docker: Push candidate Images"
 		stepKey = stepKey + "-candidate"
-		candidate = "true"
+		// candidate = "true"
 	}
 	// Default registries.
 	devRegistry := images.SourcegraphDockerDevRegistry

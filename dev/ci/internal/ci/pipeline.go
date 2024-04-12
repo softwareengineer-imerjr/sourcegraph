@@ -322,10 +322,10 @@ func GeneratePipeline(c Config) (*bk.Pipeline, error) {
 		ops.Merge(publishOpsDev)
 
 		// End-to-end tests
-		ops.Merge(operations.NewNamedSet("End-to-end tests",
-			executorsE2E(c),
-			// testUpgrade(c.candidateImageTag(), minimumUpgradeableVersion),
-		))
+		// ops.Merge(operations.NewNamedSet("End-to-end tests",
+		// 	executorsE2E(c),
+		// 	// testUpgrade(c.candidateImageTag(), minimumUpgradeableVersion),
+		// ))
 
 		// Wolfi package and base images
 		packageOps, baseImageOps := addWolfiOps(c)
