@@ -89,6 +89,9 @@ esbuild(
         "path-browserify",
         "monaco-yaml/lib/esm/monaco.contribution",
         "monaco-yaml/lib/esm/yaml.worker",
+        # shouldn't be needed, or is it?
+        "supports-color",
+        "minipass",
     ],
     format = "cjs",
     platform = "node",

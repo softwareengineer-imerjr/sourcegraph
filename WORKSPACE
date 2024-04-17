@@ -28,9 +28,9 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "aspect_bazel_lib",
-    sha256 = "f2c1f91cc0a55f7a44c94b8a79974f21349b844075740c01045acaa49e731307",
-    strip_prefix = "bazel-lib-1.40.3",
-    url = "https://github.com/aspect-build/bazel-lib/releases/download/v1.40.3/bazel-lib-v1.40.3.tar.gz",
+    sha256 = "357dad9d212327c35d9244190ef010aad315e73ffa1bed1a29e20c372f9ca346",
+    strip_prefix = "bazel-lib-2.7.0",
+    url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.7.0/bazel-lib-v2.7.0.tar.gz",
 )
 
 # rules_js defines an older rules_nodejs, so we override it here
@@ -43,9 +43,9 @@ http_archive(
 
 http_archive(
     name = "aspect_rules_js",
-    sha256 = "76a04ef2120ee00231d85d1ff012ede23963733339ad8db81f590791a031f643",
-    strip_prefix = "rules_js-1.34.1",
-    url = "https://github.com/aspect-build/rules_js/releases/download/v1.34.1/rules_js-v1.34.1.tar.gz",
+    sha256 = "bc9b4a01ef8eb050d8a7a050eedde8ffb1e45a56b0e4094e26f06c17d5fcf1d5",
+    strip_prefix = "rules_js-1.41.2",
+    url = "https://github.com/aspect-build/rules_js/releases/download/v1.41.2/rules_js-v1.41.2.tar.gz",
 )
 
 http_archive(
@@ -156,11 +156,11 @@ http_archive(
     url = "https://github.com/aspect-build/aspect-cli/archive/5.8.20.tar.gz",
 )
 
-load("@aspect_bazel_lib//lib:repositories.bzl", "register_expand_template_toolchains", "register_jq_toolchains")
+load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies", "aspect_bazel_lib_register_toolchains")
 
-register_jq_toolchains()
+aspect_bazel_lib_dependencies()
 
-register_expand_template_toolchains()
+aspect_bazel_lib_register_toolchains()
 
 http_archive(
     name = "rules_apko",
@@ -270,9 +270,14 @@ swc_register_toolchains(
 # rules_esbuild setup ===========================
 http_archive(
     name = "aspect_rules_esbuild",
-    sha256 = "84419868e43c714c0d909dca73039e2f25427fc04f352d2f4f7343ca33f60deb",
-    strip_prefix = "rules_esbuild-0.15.3",
-    url = "https://github.com/aspect-build/rules_esbuild/releases/download/v0.15.3/rules_esbuild-v0.15.3.tar.gz",
+    patch_args = ["-p1"],
+    patches = [
+        # THE MAGIC PATCH
+        "//third_party/rules_esbuild:debug.patch",
+    ],
+    sha256 = "ce206c03e27a702ba2a480ee0a1e4f8db124f3595460a77a3ae1e465243c7a73",
+    strip_prefix = "rules_esbuild-0.19.0",
+    url = "https://github.com/aspect-build/rules_esbuild/releases/download/v0.19.0/rules_esbuild-v0.19.0.tar.gz",
 )
 
 load("@aspect_rules_esbuild//esbuild:dependencies.bzl", "rules_esbuild_dependencies")
@@ -284,7 +289,7 @@ load("@aspect_rules_esbuild//esbuild:repositories.bzl", "LATEST_ESBUILD_VERSION"
 
 esbuild_register_toolchains(
     name = "esbuild",
-    esbuild_version = LATEST_ESBUILD_VERSION,
+    esbuild_version = "0.17.18",
 )
 
 # Go toolchain setup
