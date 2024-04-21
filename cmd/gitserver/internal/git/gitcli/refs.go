@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"strconv"
 	"time"
@@ -16,7 +15,7 @@ import (
 )
 
 func (g *gitCLIBackend) ListRefs(ctx context.Context, opt git.ListRefsOpts) (git.RefIterator, error) {
-	r, err := g.NewCommand(ctx, WithArguments(buildListRefsArgs(opt)...))
+	r, err := g.NewCommand(ctx, "for-each-ref", WithArguments(buildListRefsArgs(opt)...))
 	if err != nil {
 		return nil, err
 	}
@@ -27,37 +26,36 @@ func (g *gitCLIBackend) ListRefs(ctx context.Context, opt git.ListRefsOpts) (git
 	}, nil
 }
 
-func buildListRefsArgs(opt git.ListRefsOpts) []string {
-	cmdArgs := []string{
-		"for-each-ref",
-		"--sort", "-refname",
-		"--sort", "-creatordate",
-		"--sort", "-HEAD",
+func buildListRefsArgs(opt git.ListRefsOpts) []Argument {
+	cmdArgs := []Argument{
+		FlagArgument{"--sort"}, FlagArgument{"-refname"},
+		FlagArgument{"--sort"}, FlagArgument{"-creatordate"},
+		FlagArgument{"--sort"}, FlagArgument{"-HEAD"},
 		// tag * refs/tags/v5.3.1-rc.1 v5.3.1-rc.1 26750071c89a4a6536834a10bf9a97c5e70060a 26750071c89a4a6536834a10bf9a97c5e70060a 11708577416
-		"--format", "%(objecttype)%00%(HEAD)%00%(refname)%00%(refname:short)%00%(objectname)%00%(*objectname)%00%(creatordate:unix)",
+		ValueFlagArgument{Flag: "--format", Value: "%(objecttype)%00%(HEAD)%00%(refname)%00%(refname:short)%00%(objectname)%00%(*objectname)%00%(creatordate:unix)"},
 	}
 
 	for _, c := range opt.PointsAtCommit {
-		cmdArgs = append(cmdArgs, fmt.Sprintf("--points-at=%s", string(c)))
+		cmdArgs = append(cmdArgs, ValueFlagArgument{Flag: "--points-at", Value: string(c)})
 	}
 
 	for _, c := range opt.Contains {
-		cmdArgs = append(cmdArgs, fmt.Sprintf("--contains=%s", string(c)))
+		cmdArgs = append(cmdArgs, ValueFlagArgument{Flag: "--contains", Value: string(c)})
 	}
 
 	addedSeparator := false
 
 	if opt.HeadsOnly {
 		addedSeparator = true
-		cmdArgs = append(cmdArgs, "--")
-		cmdArgs = append(cmdArgs, "refs/heads/")
+		cmdArgs = append(cmdArgs, FlagArgument{"--"})
+		cmdArgs = append(cmdArgs, FlagArgument{"refs/heads/"})
 	}
 
 	if opt.TagsOnly {
 		if !addedSeparator {
-			cmdArgs = append(cmdArgs, "--")
+			cmdArgs = append(cmdArgs, FlagArgument{"--"})
 		}
-		cmdArgs = append(cmdArgs, "refs/tags/")
+		cmdArgs = append(cmdArgs, FlagArgument{"refs/tags/"})
 	}
 
 	return cmdArgs
