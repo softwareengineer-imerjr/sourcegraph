@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bazelbuild/rules_go/go/tools/bazel"
 	"github.com/go-logr/stdr"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -23,6 +24,18 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 )
+
+var setupEnvtestBin = "setup-envtest"
+
+func init() {
+	if os.Getenv("BAZEL_TEST") == "1" {
+		var ok bool
+		setupEnvtestBin, ok = bazel.FindBinary("dev/tools", "src-cli")
+		if !ok {
+			panic("failed to find src-cli")
+		}
+	}
+}
 
 // Test helpers
 
@@ -63,7 +76,7 @@ func (suite *ApplianceTestSuite) setupEnvtest() {
 	// into BinaryAssetsDirectory below, or download setup-envtest without
 	// assuming it's already on the PATH.
 	// Ideally these assets could be cached in buildkite too.
-	setupEnvTestCmd := exec.Command("setup-envtest", "use", "1.28.0", "--bin-dir", "/tmp/envtest", "-p", "path")
+	setupEnvTestCmd := exec.Command(setupEnvtestBin, "use", "1.28.0", "--bin-dir", "/tmp/envtest", "-p", "path")
 	var envtestOut bytes.Buffer
 	setupEnvTestCmd.Stdout = &envtestOut
 	err := setupEnvTestCmd.Run()

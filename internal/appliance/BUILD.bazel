@@ -46,12 +46,15 @@ go_test(
         "kubernetes_test.go",
         "reconcile_test.go",
     ],
-    data = glob(["testdata/**"]),
+    data = glob(["testdata/**"]) + [
+        "//dev/tools:src-cli",
+    ],
     embed = [":appliance"],
     deps = [
         "@com_github_go_logr_stdr//:stdr",
         "@com_github_stretchr_testify//require",
         "@com_github_stretchr_testify//suite",
+        "@io_bazel_rules_go//go/tools/bazel:go_default_library",
         "@io_k8s_api//core/v1:core",
         "@io_k8s_apimachinery//pkg/apis/meta/v1:meta",
         "@io_k8s_apimachinery//pkg/runtime/schema",
