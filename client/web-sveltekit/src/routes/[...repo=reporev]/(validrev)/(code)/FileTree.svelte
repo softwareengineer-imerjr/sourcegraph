@@ -121,6 +121,9 @@
                         {isRoot ? '..' : entry.name}
                     </a>
                     <div slot="content">
+                        <!--
+                        TODO: should revision be the revision associated with the path, not the other way around?
+                        -->
                         <FilePopover {repoName} revspec={revision} filePath={entry.path} />
                     </div>
                 </Popover>

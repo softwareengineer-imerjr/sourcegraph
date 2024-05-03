@@ -16,17 +16,15 @@
 
     import { FileOrDirPopoverQuery } from '../../../routes/[...repo=reporev]/(validrev)/(code)/layout.gql'
 
-    import type { FileOrDirPopoverFragment } from './FilePopover.gql'
     import NodeLine from './NodeLine.svelte'
 
     faker.seed(1)
     export let repoName: string
     export let revspec: string
     export let filePath: string
-    let frag: FileOrDirPopoverFragment | null | undefined
-    // TODO: figure out when to call this.
+    let frag: any
 
-    async function fetchFileOrDirPopover() {
+    onMount(async () => {
         const client = getGraphQLClient()
         const result = await client.query(FileOrDirPopoverQuery, {
             repoName,
@@ -35,27 +33,24 @@
         })
 
         if (result.error || !result.data) {
+            frag = null
             console.error('could not fetch file or dir popover', result.error)
             throw new Error('could not fetch file or dir popover', result.error)
         }
 
-        return result.data.repository?.commit?.path
-    }
-
-    onMount(async () => {
-        frag = await fetchFileOrDirPopover()
+        frag = result.data.repository?.commit?.path
     })
 
     const CENTER_DOT = '\u00B7' // interpunct
 
     $: repo = displayRepoName(repoName)
-    /* $: filePath = frag?.path.split('/')
-    $: fileOrDirName = filePath?.pop() */
+    $: path = filePath.split('/')
+    $: fileOrDirName = path.pop()
     $: fileInfo =
         !frag?.isDirectory && frag?.__typename === 'GitBlob'
             ? `${frag.languages[0]} ${CENTER_DOT} ${frag.totalLines} Lines ${CENTER_DOT} ${formatBytes(frag.byteSize)}`
             : 'Directory'
-    // $: avatar = faker.internet.avatar
+    $: avatar = frag?.commit.author.person
 
     let team = '@team-code-search'
     let members: Avatar_Person[] = [
@@ -104,7 +99,7 @@
                     --icon-size="1.5rem"
                 />
                 <div class="file">
-                    <div>fileOrDirName</div>
+                    <div>{fileOrDirName}</div>
                     {#if fileInfo}
                         <small>{fileInfo}</small>
                     {/if}
@@ -122,16 +117,8 @@
                     </a>
                     <div class="msg">{frag.commit.subject}</div>
                     <div class="author">
-                        <Avatar
-                            avatar={{
-                                __typename: 'Person',
-                                avatarURL: faker.internet.avatar(),
-                                displayName: faker.name.lastName(),
-                                name: faker.name.firstName(),
-                            }}
-                            --avatar-size="1.0rem"
-                        />
-                        <small class="name">Display Name</small>
+                        <Avatar {avatar} --avatar-size="1.0rem" />
+                        <small class="name">{avatar.displayName}</small>
                         <small><Timestamp date={frag.commit.author.date} /></small>
                     </div>
                 </div>
