@@ -13,8 +13,6 @@
     export let entry: T
     export let treeProvider: TreeProvider<T>
 
-    let label: HTMLElement | undefined
-
     $: treeState = getTreeContext()
     $: nodeID = treeProvider.getNodeID(entry)
     $: expandable = treeProvider.isExpandable(entry)
@@ -34,32 +32,19 @@
             )
         }
     }
-
-    $: if (selected && label) {
-        const container = label.closest('[role="tree"]')
-        if (container) {
-            // Only scroll the active tree entry into the 'center' if the selected entry changed
-            // by something other than user interaction. If we always 'center' then the tree
-            // will "jump" as the user selects an entry with the keyboard or mouse, which is
-            // disorienting.
-            // But if we never 'center' then going back and forth might position the selected
-            // entry at the top or bottom of the scroll container, which is not very visible.
-            // So we only 'center' if focus is not on the tree container, which likely means
-            // that the user is not interacting with the tree.
-            label.scrollIntoView({ block: container.contains(document.activeElement) ? 'nearest' : 'center' })
-        }
-    }
 </script>
 
 <li
+    class="treeitem"
+    class:selectable
+    class:selected
     role="treeitem"
     aria-selected={selectable ? selected : undefined}
     aria-expanded={expandable ? expanded : undefined}
     {tabindex}
-    data-treeitem
     data-node-id={nodeID}
 >
-    <span bind:this={label} class="label" data-treeitem-label>
+    <span class="label" data-treeitem-label>
         <!-- hide the open/close button to preserve alignment with expandable entries -->
         <span class:hidden={!expandable}>
             <!-- We have to stop even propagation because the tree root listens for click events for
@@ -80,11 +65,11 @@
     </span>
     {#if expanded && children}
         {#await children}
-            <div class="loading">
+            <div class="ml-4">
                 <LoadingSpinner center={false} />
             </div>
         {:then treeProvider}
-            <ul role="group">
+            <ul role="group" class="ml-2">
                 {#each treeProvider.getEntries() as entry (treeProvider.getNodeID(entry))}
                     <svelte:self {entry} {treeProvider} let:entry let:toggle let:expanded>
                         <slot {entry} {toggle} {expanded} />
@@ -98,7 +83,7 @@
 </li>
 
 <style lang="scss">
-    [role='treeitem'] {
+    li {
         // Margin ensures that focus rings are not covered by preceeding or following elements
         margin: 0.25rem 0;
         border-radius: var(--border-radius);
@@ -110,11 +95,6 @@
                 box-shadow: var(--focus-box-shadow);
             }
         }
-    }
-
-    [role='group'],
-    .loading {
-        margin-left: 1rem;
     }
 
     .label {
