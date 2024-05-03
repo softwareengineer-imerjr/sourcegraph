@@ -1,0 +1,22 @@
+fragment FilePopoverFragment on GitBlob {
+    path
+    isDirectory
+    languages
+    totalLines
+    byteSize
+    commit {
+        oid
+        abbreviatedOID
+        subject
+        canonicalURL
+        author {
+            date
+            person {
+                __typename
+                displayName
+                avatarURL
+                name
+            }
+        }
+    }
+}
