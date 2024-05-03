@@ -4,33 +4,58 @@
 
 <script lang="ts">
     import { mdiFolder, mdiLanguageGo } from '@mdi/js'
+    import { onMount } from 'svelte'
 
     import Avatar from '$lib/Avatar.svelte'
+    import { getGraphQLClient } from '$lib/graphql'
     import Icon from '$lib/Icon.svelte'
     import { displayRepoName } from '$lib/shared'
     import Timestamp from '$lib/Timestamp.svelte'
     import { formatBytes } from '$lib/utils'
     import type { Avatar_Person } from '$testing/graphql-type-mocks'
 
-    import type { FilePopoverFragment } from './FilePopover.gql'
+    import { FileOrDirPopoverQuery } from '../../../routes/[...repo=reporev]/(validrev)/(code)/layout.gql'
+
+    import type { FileOrDirPopoverFragment } from './FilePopover.gql'
     import NodeLine from './NodeLine.svelte'
 
     faker.seed(1)
-    export let repoName: string = 'github.com/sourcegraph/sourcegraph'
-    export let frag: FilePopoverFragment
+    export let repoName: string
+    export let revspec: string
+    export let filePath: string
+    let frag: FileOrDirPopoverFragment | null | undefined
+    // TODO: figure out when to call this.
+
+    async function fetchFileOrDirPopover() {
+        const client = getGraphQLClient()
+        const result = await client.query(FileOrDirPopoverQuery, {
+            repoName,
+            revspec,
+            filePath,
+        })
+
+        if (result.error || !result.data) {
+            console.error('could not fetch file or dir popover', result.error)
+            throw new Error('could not fetch file or dir popover', result.error)
+        }
+
+        return result.data.repository?.commit?.path
+    }
+
+    onMount(async () => {
+        frag = await fetchFileOrDirPopover()
+    })
 
     const CENTER_DOT = '\u00B7' // interpunct
 
     $: repo = displayRepoName(repoName)
-    $: filePath = frag.path.split('/')
-    $: fileOrDirName = filePath.pop()
-    $: fileInfo = `${frag.languages[0]} ${CENTER_DOT} ${frag.totalLines} Lines ${CENTER_DOT} ${formatBytes(
-        frag.byteSize
-    )}`
-    // TODO: @jasonhawkharris Don't hard code this.
-    $: dirInfo = `${frag.languages[0]} ${CENTER_DOT} 92 Files ${CENTER_DOT} ${formatBytes(frag.byteSize)} total size`
-    $: avatar = frag.commit.author.person
-    // TODO: @jasonhawkharris Don't hard code this.
+    /* $: filePath = frag?.path.split('/')
+    $: fileOrDirName = filePath?.pop() */
+    $: fileInfo =
+        !frag?.isDirectory && frag?.__typename === 'GitBlob'
+            ? `${frag.languages[0]} ${CENTER_DOT} ${frag.totalLines} Lines ${CENTER_DOT} ${formatBytes(frag.byteSize)}`
+            : 'Directory'
+    // $: avatar = faker.internet.avatar
 
     let team = '@team-code-search'
     let members: Avatar_Person[] = [
@@ -61,66 +86,73 @@
     ]
 </script>
 
-<div class="root">
-    <div class="desc">
-        <div class="repo-and-path">
-            <div>{repo}</div>
-            <div>{CENTER_DOT}</div>
-            <div class="file-path">
-                {#each filePath as part}
-                    <div>{part}</div>
-                    {#if filePath.indexOf(part) < filePath.length - 1}
-                        <div>/</div>
+{#if frag}
+    <div class="root">
+        <div class="desc">
+            <div class="repo-and-path">
+                <div>{repo}</div>
+                <div>{CENTER_DOT}</div>
+                <div class="file-path">
+                    {filePath}
+                </div>
+            </div>
+
+            <div class="lang-and-file">
+                <Icon
+                    svgPath={frag.isDirectory ? mdiFolder : mdiLanguageGo}
+                    --icon-fill-color="var(--primary)"
+                    --icon-size="1.5rem"
+                />
+                <div class="file">
+                    <div>fileOrDirName</div>
+                    {#if fileInfo}
+                        <small>{fileInfo}</small>
                     {/if}
+                </div>
+            </div>
+        </div>
+
+        <div class="last-commit">
+            <small class="title">Last Changed @</small>
+            <div class="commit">
+                <NodeLine />
+                <div>
+                    <a href={frag.commit.canonicalURL} target="_blank">
+                        {frag.commit.abbreviatedOID}
+                    </a>
+                    <div class="msg">{frag.commit.subject}</div>
+                    <div class="author">
+                        <Avatar
+                            avatar={{
+                                __typename: 'Person',
+                                avatarURL: faker.internet.avatar(),
+                                displayName: faker.name.lastName(),
+                                name: faker.name.firstName(),
+                            }}
+                            --avatar-size="1.0rem"
+                        />
+                        <small class="name">Display Name</small>
+                        <small><Timestamp date={frag.commit.author.date} /></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="own">
+            <div class="own-info">
+                <div class="team">Owned by {team}</div>
+                <small>{members.length} team members</small>
+            </div>
+            <div class="members">
+                {#each members.slice(0, 5) as member}
+                    <div class="member">
+                        <Avatar avatar={member} --avatar-size="1.0rem" />
+                    </div>
                 {/each}
             </div>
         </div>
-
-        <div class="lang-and-file">
-            <Icon
-                svgPath={frag.isDirectory ? mdiFolder : mdiLanguageGo}
-                --icon-fill-color="var(--primary)"
-                --icon-size="1.5rem"
-            />
-            <div class="file">
-                <div>{fileOrDirName}</div>
-                <small>{frag.isDirectory ? dirInfo : fileInfo}</small>
-            </div>
-        </div>
     </div>
-
-    <div class="last-commit">
-        <small class="title">Last Changed @</small>
-        <div class="commit">
-            <NodeLine />
-            <div>
-                <a href={frag.commit.canonicalURL} target="_blank">
-                    {frag.commit.abbreviatedOID}
-                </a>
-                <div class="msg">{frag.commit.subject}</div>
-                <div class="author">
-                    <Avatar {avatar} --avatar-size="1.0rem" />
-                    <small class="name">{avatar.displayName}</small>
-                    <small><Timestamp date={frag.commit.author.date} /></small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="own">
-        <div class="own-info">
-            <div class="team">Owned by {team}</div>
-            <small>{members.length} team members</small>
-        </div>
-        <div class="members">
-            {#each members.slice(0, 5) as member}
-                <div class="member">
-                    <Avatar avatar={member} --avatar-size="1.0rem" />
-                </div>
-            {/each}
-        </div>
-    </div>
-</div>
+{/if}
 
 <style lang="scss">
     .root {

@@ -20,28 +20,26 @@
     import { mdiHistory, mdiListBoxOutline } from '@mdi/js'
     import { tick } from 'svelte'
 
-    import { page } from '$app/stores'
     import { afterNavigate, goto } from '$app/navigation'
-
-    import { Alert, PanelGroup, Panel, PanelResizeHandle } from '$lib/wildcard'
+    import { page } from '$app/stores'
     import { isErrorLike, SourcegraphURL } from '$lib/common'
-    import { fetchSidebarFileTree } from '$lib/repo/api/tree'
-    import { sidebarOpen } from '$lib/repo/stores'
-    import type { LastCommitFragment } from '$testing/graphql-type-mocks'
-
-    import Tabs from '$lib/Tabs.svelte'
-    import TabPanel from '$lib/TabPanel.svelte'
-    import LastCommit from '$lib/repo/LastCommit.svelte'
     import LoadingSpinner from '$lib/LoadingSpinner.svelte'
-    import SidebarToggleButton from '$lib/repo/SidebarToggleButton.svelte'
+    import { fetchSidebarFileTree } from '$lib/repo/api/tree'
     import HistoryPanel, { type Capture as HistoryCapture } from '$lib/repo/HistoryPanel.svelte'
+    import type { LastCommitFragment } from '$lib/repo/LastCommit.gql'
+    import LastCommit from '$lib/repo/LastCommit.svelte'
+    import SidebarToggleButton from '$lib/repo/SidebarToggleButton.svelte'
+    import { sidebarOpen } from '$lib/repo/stores'
+    import TabPanel from '$lib/TabPanel.svelte'
+    import Tabs from '$lib/Tabs.svelte'
+    import { Alert, PanelGroup, Panel, PanelResizeHandle } from '$lib/wildcard'
 
     import type { LayoutData, Snapshot } from './$types'
     import FileTree from './FileTree.svelte'
     import { createFileTreeStore } from './fileTreeStore'
-    import RepositoryRevPicker from './RepositoryRevPicker.svelte'
-    import ReferencePanel from './ReferencePanel.svelte'
     import type { GitHistory_HistoryConnection, RepoPage_ReferencesLocationConnection } from './layout.gql'
+    import ReferencePanel from './ReferencePanel.svelte'
+    import RepositoryRevPicker from './RepositoryRevPicker.svelte'
 
     enum TabPanels {
         History,
@@ -94,9 +92,9 @@
     }
 
     $: if (!!lastCommitQuery) {
-        // Reset commit history when the query observable changes. Without
-        // this we are showing the commit history of the previously selected
-        // file/folder until the new commit history is loaded.
+        // Reset last commit when the query observable changes. Without
+        // this we are showing the last commit of the previously selected
+        // file/folder until the last commit is loaded.
         lastCommit = null
     }
 

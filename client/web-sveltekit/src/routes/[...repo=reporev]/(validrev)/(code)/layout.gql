@@ -23,11 +23,11 @@ query LastCommitQuery($repoName: String!, $revspec: String!, $filePath: String!)
     }
 }
 
-query FilePopoverQuery($repoName: String!, $revspec: String!, $filePath: String!) {
+query FileOrDirPopoverQuery($repoName: String!, $revspec: String!, $filePath: String!) {
     repository(name: $repoName) {
         commit(rev: $revspec) {
             path(path: $filePath) {
-                ...FilePopoverFragment
+                ...FileOrDirPopoverFragment
             }
         }
     }

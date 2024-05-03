@@ -1,12 +1,40 @@
+fragment FileOrDirPopoverFragment on GitTreeOrBlob {
+    ...FilePopoverFragment
+    ...DirPopoverFragment
+}
+
 fragment FilePopoverFragment on GitBlob {
     path
     isDirectory
     languages
-    totalLines
     byteSize
+    totalLines
+        commit {
+            abbreviatedOID
+            oid
+            subject
+            canonicalURL
+            author {
+                date
+                person {
+                    __typename
+                    displayName
+                    avatarURL
+                    name
+                }
+            }
+        }
+    ownership {
+        ...FileOrDirOwnership
+    }
+}
+
+fragment DirPopoverFragment on GitTree {
+    path
+    isDirectory
     commit {
-        oid
         abbreviatedOID
+        oid
         subject
         canonicalURL
         author {
@@ -17,6 +45,19 @@ fragment FilePopoverFragment on GitBlob {
                 avatarURL
                 name
             }
+        }
+    }
+    ownership {
+        ...FileOrDirOwnership
+    }
+}
+
+fragment FileOrDirOwnership on OwnershipConnection {
+    totalCount
+    totalOwners
+    nodes {
+        owner {
+            __typename
         }
     }
 }

@@ -7,11 +7,13 @@
     import Icon from '$lib/Icon.svelte'
     import { type FileTreeProvider, NODE_LIMIT, type TreeEntry } from '$lib/repo/api/tree'
     import FileIcon from '$lib/repo/FileIcon.svelte'
+    import FilePopover from '$lib/repo/filePopover/FilePopover.svelte'
     import { getSidebarFileTreeStateForRepo } from '$lib/repo/stores'
     import { replaceRevisionInURL } from '$lib/shared'
     import TreeView, { setTreeContext } from '$lib/TreeView.svelte'
     import { createForwardStore } from '$lib/utils'
     import { Alert } from '$lib/wildcard'
+    import Popover from '$lib/Popover.svelte'
 
     export let repoName: string
     export let treeProvider: FileTreeProvider
@@ -103,19 +105,25 @@
                     We handle navigation via the TreeView's select event, to preserve the focus state.
                     Using a link here allows us to benefit from data preloading.
                 -->
-                <a
-                    href={replaceRevisionInURL(entry.canonicalURL, revision)}
-                    on:click|preventDefault={() => {}}
-                    tabindex={-1}
-                    data-go-up={isRoot ? true : undefined}
-                >
-                    {#if entry.isDirectory}
-                        <Icon svgPath={getDirectoryIconPath(entry, expanded)} inline />
-                    {:else}
-                        <FileIcon inline file={entry.__typename === 'GitBlob' ? entry : null} />
-                    {/if}
-                    {isRoot ? '..' : entry.name}
-                </a>
+                <Popover let:registerTrigger placement="right-end" showOnHover>
+                    <a
+                        href={replaceRevisionInURL(entry.canonicalURL, revision)}
+                        on:click|preventDefault={() => {}}
+                        tabindex={-1}
+                        data-go-up={isRoot ? true : undefined}
+                        use:registerTrigger
+                    >
+                        {#if entry.isDirectory}
+                            <Icon svgPath={getDirectoryIconPath(entry, expanded)} inline />
+                        {:else}
+                            <FileIcon inline file={entry.__typename === 'GitBlob' ? entry : null} />
+                        {/if}
+                        {isRoot ? '..' : entry.name}
+                    </a>
+                    <div slot="content">
+                        <FilePopover {repoName} revspec={revision} filePath={entry.path} />
+                    </div>
+                </Popover>
             {/if}
         </svelte:fragment>
         <Alert slot="error" let:error variant="danger">
