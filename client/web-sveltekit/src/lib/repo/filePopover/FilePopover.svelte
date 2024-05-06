@@ -10,7 +10,6 @@
     import { formatBytes } from '$lib/utils'
 
     import { FileOrDirPopoverQuery } from '../../../routes/[...repo=reporev]/(validrev)/(code)/layout.gql'
-    import { type FileTreeNodeValue } from '../api/tree'
     import type { FileIcon_GitBlob } from '../FileIcon.gql'
     import FileIcon from '../FileIcon.svelte'
 

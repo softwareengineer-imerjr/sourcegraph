@@ -14,12 +14,6 @@
     let trigger: HTMLElement | null
     let target: HTMLElement | undefined
     let popoverContainer: HTMLElement | null
-    /**
-     * If true, popover content will use the border set by Popover. If false,
-     * the popover will not have a border, and the border should be set in the
-     * child component where the content is rendered.
-     */
-    export let useDefaultBorder = true
 
     function toggle(open?: boolean): void {
         isOpen = open === undefined ? !isOpen : open
@@ -86,7 +80,6 @@
 <slot {toggle} {registerTrigger} {registerTarget} />
 {#if trigger && isOpen}
     <div
-        class:default-border={useDefaultBorder}
         use:registerPopoverContainer
         use:portal
         use:onClickOutside
@@ -120,9 +113,5 @@
         box-shadow: var(--popover-shadow);
         border: 0;
         border-radius: var(--popover-border-radius);
-    }
-
-    .default-border {
-        border: 1px solid var(--dropdown-border-color);
     }
 </style>
