@@ -15,7 +15,7 @@
         inline?: boolean
     }
 
-    export let svgPath: string
+    export let svgPath: string | undefined
     export let inline: boolean = false
 </script>
 

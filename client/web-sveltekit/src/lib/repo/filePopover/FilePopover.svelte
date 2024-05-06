@@ -39,6 +39,7 @@
         }
 
         frag = result.data.repository?.commit?.path
+        console.log(frag)
     })
 
     const CENTER_DOT = '\u00B7' // interpunct
