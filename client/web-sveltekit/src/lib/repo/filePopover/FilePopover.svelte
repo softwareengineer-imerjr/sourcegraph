@@ -1,7 +1,3 @@
-<script lang="ts" context="module">
-    import { faker } from '@faker-js/faker'
-</script>
-
 <script lang="ts">
     import { mdiFolder, mdiLanguageGo } from '@mdi/js'
     import { onMount } from 'svelte'
@@ -12,13 +8,11 @@
     import { displayRepoName } from '$lib/shared'
     import Timestamp from '$lib/Timestamp.svelte'
     import { formatBytes } from '$lib/utils'
-    import type { Avatar_Person } from '$testing/graphql-type-mocks'
 
     import { FileOrDirPopoverQuery } from '../../../routes/[...repo=reporev]/(validrev)/(code)/layout.gql'
 
     import NodeLine from './NodeLine.svelte'
 
-    faker.seed(1)
     export let repoName: string
     export let revspec: string
     export let filePath: string
@@ -39,7 +33,6 @@
         }
 
         frag = result.data.repository?.commit?.path
-        console.log(frag)
     })
 
     const CENTER_DOT = '\u00B7' // interpunct
@@ -47,39 +40,13 @@
     $: repo = displayRepoName(repoName)
     $: path = filePath.split('/')
     $: fileOrDirName = path.pop()
+    $: totalFiles = frag?.isDirectory ? frag.files.length : null
+    $: totalSubmodules = frag?.isDirectory ? frag.directories.length : null
     $: fileInfo =
         !frag?.isDirectory && frag?.__typename === 'GitBlob'
             ? `${frag.languages[0]} ${CENTER_DOT} ${frag.totalLines} Lines ${CENTER_DOT} ${formatBytes(frag.byteSize)}`
-            : 'Directory'
+            : `${totalSubmodules} subdirectories ${CENTER_DOT} ${totalFiles} files`
     $: avatar = frag?.commit.author.person
-
-    let team = '@team-code-search'
-    let members: Avatar_Person[] = [
-        {
-            __typename: 'Person',
-            displayName: 'Peter Slack',
-            name: 'sqs',
-            avatarURL: faker.internet.avatar(),
-        },
-        {
-            __typename: 'Person',
-            displayName: 'Jason Slack',
-            name: 'sqs',
-            avatarURL: faker.internet.avatar(),
-        },
-        {
-            __typename: 'Person',
-            displayName: 'Michael Slack',
-            name: 'sqs',
-            avatarURL: faker.internet.avatar(),
-        },
-        {
-            __typename: 'Person',
-            displayName: 'Camden Slack',
-            name: 'sqs',
-            avatarURL: faker.internet.avatar(),
-        },
-    ]
 </script>
 
 {#if frag}
@@ -123,20 +90,6 @@
                         <small><Timestamp date={frag.commit.author.date} /></small>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="own">
-            <div class="own-info">
-                <div class="team">Owned by {team}</div>
-                <small>{members.length} team members</small>
-            </div>
-            <div class="members">
-                {#each members.slice(0, 5) as member}
-                    <div class="member">
-                        <Avatar avatar={member} --avatar-size="1.0rem" />
-                    </div>
-                {/each}
             </div>
         </div>
     </div>
@@ -254,29 +207,6 @@
                         }
                     }
                 }
-            }
-        }
-    }
-    .own {
-        padding: 0.5rem 1rem 0.75rem;
-        display: flex;
-        flex-flow: row nowrap;
-        align-items: center;
-        justify-content: space-between;
-        border-top: 1px solid var(--border-color);
-        color: var(--text-muted);
-        .own-info {
-            display: flex;
-            flex-flow: column nowrap;
-            align-items: flex-start;
-            justify-content: center;
-            gap: 0.25rem;
-        }
-        .members {
-            display: flex;
-            flex-flow: row-reverse nowrap;
-            .member {
-                margin-left: -0.25rem;
             }
         }
     }

@@ -9,29 +9,6 @@ fragment FilePopoverFragment on GitBlob {
     languages
     byteSize
     totalLines
-        commit {
-            abbreviatedOID
-            oid
-            subject
-            canonicalURL
-            author {
-                date
-                person {
-                    __typename
-                    displayName
-                    avatarURL
-                    name
-                }
-            }
-        }
-    ownership {
-        ...FileOrDirOwnership
-    }
-}
-
-fragment DirPopoverFragment on GitTree {
-    path
-    isDirectory
     commit {
         abbreviatedOID
         oid
@@ -47,8 +24,31 @@ fragment DirPopoverFragment on GitTree {
             }
         }
     }
-    ownership {
-        ...FileOrDirOwnership
+}
+
+fragment DirPopoverFragment on GitTree {
+    path
+    isDirectory
+    files {
+        name
+    }
+    directories {
+        name
+    }
+    commit {
+        abbreviatedOID
+        oid
+        subject
+        canonicalURL
+        author {
+            date
+            person {
+                __typename
+                displayName
+                avatarURL
+                name
+            }
+        }
     }
 }
 
