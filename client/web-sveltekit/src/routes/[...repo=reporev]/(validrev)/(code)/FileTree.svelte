@@ -124,7 +124,7 @@
                         <!--
                         TODO: should revision be the revision associated with the path, not the other way around?
                         -->
-                        <FilePopover {repoName} revspec={revision} filePath={entry.path} />
+                        <FilePopover {repoName} revspec={revision} filePath={entry.path} {entry} />
                     </div>
                 </Popover>
             {/if}

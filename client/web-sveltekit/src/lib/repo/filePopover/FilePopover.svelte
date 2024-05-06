@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { mdiFolder, mdiLanguageGo } from '@mdi/js'
+    import { mdiFolder } from '@mdi/js'
     import { onMount } from 'svelte'
 
     import Avatar from '$lib/Avatar.svelte'
@@ -10,12 +10,16 @@
     import { formatBytes } from '$lib/utils'
 
     import { FileOrDirPopoverQuery } from '../../../routes/[...repo=reporev]/(validrev)/(code)/layout.gql'
+    import { type FileTreeNodeValue } from '../api/tree'
+    import type { FileIcon_GitBlob } from '../FileIcon.gql'
+    import FileIcon from '../FileIcon.svelte'
 
     import NodeLine from './NodeLine.svelte'
 
     export let repoName: string
     export let revspec: string
     export let filePath: string
+    export let entry: FileIcon_GitBlob
     let frag: any
 
     onMount(async () => {
@@ -35,11 +39,26 @@
         frag = result.data.repository?.commit?.path
     })
 
+    const abbreviatedFilePath = (filePath: string): string => {
+        let parts = filePath.split('/')
+        if (parts.length <= 3) {
+            return filePath.replace('/', ' / ')
+        }
+
+        return `${parts[0]} / ... / ${parts[parts.length - 1]}`
+    }
+
+    const getFileName = (filePath: string): string => {
+        let parts = filePath.split('/')
+        return parts[parts.length - 1]
+    }
+
     const CENTER_DOT = '\u00B7' // interpunct
 
-    $: repo = displayRepoName(repoName)
-    $: path = filePath.split('/')
-    $: fileOrDirName = path.pop()
+    $: abbreviatedPath = abbreviatedFilePath(filePath)
+    $: repo = displayRepoName(repoName).replace('/', ' / ')
+    $: repoAndPath = `${repo} ${CENTER_DOT} ${abbreviatedPath}`
+    $: fileOrDirName = getFileName(filePath)
     $: totalFiles = frag?.isDirectory ? frag.files.length : null
     $: totalSubmodules = frag?.isDirectory ? frag.directories.length : null
     $: fileInfo =
@@ -53,19 +72,15 @@
     <div class="root">
         <div class="desc">
             <div class="repo-and-path">
-                <div>{repo}</div>
-                <div>{CENTER_DOT}</div>
-                <div class="file-path">
-                    {filePath}
-                </div>
+                <small>{repoAndPath}</small>
             </div>
 
             <div class="lang-and-file">
-                <Icon
-                    svgPath={frag.isDirectory ? mdiFolder : mdiLanguageGo}
-                    --icon-fill-color="var(--primary)"
-                    --icon-size="1.5rem"
-                />
+                {#if frag.isDirectory}
+                    <Icon svgPath={mdiFolder} --icon-fill-color="var(--primary)" --icon-size="1.5rem" />
+                {:else}
+                    <FileIcon file={entry.__typename === 'GitBlob' ? entry : null} size="1.5rem" />
+                {/if}
                 <div class="file">
                     <div>{fileOrDirName}</div>
                     {#if fileInfo}
@@ -86,8 +101,11 @@
                     <div class="msg">{frag.commit.subject}</div>
                     <div class="author">
                         <Avatar {avatar} --avatar-size="1.0rem" />
-                        <small class="name">{avatar.displayName}</small>
-                        <small><Timestamp date={frag.commit.author.date} /></small>
+                        <small class="name"
+                            >{avatar.displayName}
+                            {CENTER_DOT}
+                            <Timestamp date={frag.commit.author.date} /></small
+                        >
                     </div>
                 </div>
             </div>
@@ -101,11 +119,13 @@
         background: var(--body-bg);
         border: 1px solid var(--border-color);
         border-radius: 8px;
+
         .desc {
             display: flex;
             flex-flow: column nowrap;
             align-items: center;
             justify-content: center;
+
             .repo-and-path {
                 align-items: center;
                 border-bottom: 1px solid var(--border-color);
@@ -115,28 +135,26 @@
                 justify-content: flex-start;
                 padding: 0.5rem 1rem;
                 width: 100%;
-                div {
-                    font-family: var(--monospace-font-family);
-                    font-weight: 100;
-                    font-size: 0.75rem;
-                    color: var(--text-muted);
-                }
-                .file-path {
-                    display: flex;
-                    flex-flow: row wrap;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 0.25rem;
+                font-family: var(--monospace-font-family);
+                white-space: nowrap;
+                color: var(--text-muted);
+
+                small {
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
                 }
             }
+
             .lang-and-file {
                 width: 100%;
                 display: flex;
                 flex-flow: row nowrap;
-                align-items: flex-start;
+                align-items: center;
                 justify-content: flex-start;
                 padding: 0.5rem 1rem;
                 gap: 0.25rem 0.75rem;
+
                 .file {
                     display: flex;
                     flex-flow: column nowrap;
@@ -144,21 +162,25 @@
                     justify-content: flex-start;
                     font-family: var(--monospace-font-family);
                     gap: 0.25rem;
+
                     div {
                         color: var(--text-body);
                     }
+
                     small {
                         color: var(--text-muted);
                     }
                 }
             }
         }
+
         .last-commit {
             display: flex;
             flex-flow: column nowrap;
             align-items: flex-start;
             justify-content: center;
             gap: 0.5rem 0.5rem 0rem;
+
             .title {
                 padding: 0.5rem 1rem;
                 color: var(--text-body);
@@ -166,6 +188,7 @@
                 width: 100%;
                 border-bottom: 1px solid var(--border-color);
             }
+
             .commit {
                 padding-left: 1.5rem;
                 display: flex;
@@ -175,6 +198,7 @@
                 width: 100%;
                 height: 90px;
                 gap: 0.5rem 1.25rem;
+
                 div {
                     display: flex;
                     flex-flow: column nowrap;
@@ -182,13 +206,14 @@
                     justify-content: center;
                     gap: 0.25rem;
                     width: 325px;
+
                     a {
                         font-family: var(--monospace-font-family);
                         background-color: var(--color-bg-2);
                         padding: 0.15rem 0.25rem;
                         border-radius: 3px;
-                        font-size: 0.65rem;
                     }
+
                     .msg {
                         color: var(--text-body);
                         text-overflow: ellipsis ellipsis;
