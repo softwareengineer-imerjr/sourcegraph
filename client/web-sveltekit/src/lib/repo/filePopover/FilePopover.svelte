@@ -40,9 +40,7 @@
 
     const abbreviatedFilePath = (filePath: string): string => {
         let parts = filePath.split('/')
-        if (parts.length <= 3) {
-            return filePath.replace('/', ' / ')
-        }
+        if (parts.length <= 3) return parts.join(' / ')
 
         return `${parts[0]} / ... / ${parts[parts.length - 1]}`
     }
@@ -78,7 +76,7 @@
                 {#if frag.isDirectory}
                     <Icon svgPath={mdiFolder} --icon-fill-color="var(--primary)" --icon-size="1.5rem" />
                 {:else}
-                    <FileIcon file={entry.__typename === 'GitBlob' ? entry : null} size="1.5rem" />
+                    <FileIcon file={entry.__typename === 'GitBlob' ? entry : null} inline={false} size="1.5rem" />
                 {/if}
                 <div class="file">
                     <div>{fileOrDirName}</div>
