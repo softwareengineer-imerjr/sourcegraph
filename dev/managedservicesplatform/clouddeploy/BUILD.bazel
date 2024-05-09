@@ -9,6 +9,7 @@ go_library(
         "target.template.yaml",
     ],
     importpath = "github.com/sourcegraph/sourcegraph/dev/managedservicesplatform/clouddeploy",
+    tags = [TAG_INFRA_CORESERVICES],
     visibility = ["//visibility:public"],
     deps = [
         "//dev/managedservicesplatform/spec",
@@ -20,5 +21,6 @@ go_test(
     name = "clouddeploy_test",
     srcs = ["clouddeploy_test.go"],
     embed = [":clouddeploy"],
+    tags = [TAG_INFRA_CORESERVICES],
     deps = ["@com_github_stretchr_testify//require"],
 )

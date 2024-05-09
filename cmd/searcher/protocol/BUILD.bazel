@@ -8,6 +8,7 @@ go_library(
         "searcher.go",
     ],
     importpath = "github.com/sourcegraph/sourcegraph/cmd/searcher/protocol",
+    tags = [TAG_PLATFORM_SEARCH],
     visibility = ["//visibility:public"],
     deps = [
         "//internal/api",
@@ -24,6 +25,7 @@ go_test(
         "query_test.go",
         "searcher_test.go",
     ],
+    tags = [TAG_PLATFORM_SEARCH],
     deps = [
         ":protocol",
         "//internal/search/query",

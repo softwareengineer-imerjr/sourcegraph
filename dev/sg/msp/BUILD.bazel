@@ -9,6 +9,7 @@ go_library(
         "sg_msp.go",
     ],
     importpath = "github.com/sourcegraph/sourcegraph/dev/sg/msp",
+    tags = [TAG_INFRA_CORESERVICES],
     visibility = ["//visibility:public"],
     deps = [
         "//dev/managedservicesplatform",
@@ -47,5 +48,6 @@ go_test(
     name = "msp_test",
     srcs = ["helpers_test.go"],
     embed = [":msp"],
+    tags = [TAG_INFRA_CORESERVICES],
     deps = ["@com_github_hexops_autogold_v2//:autogold"],
 )
