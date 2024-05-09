@@ -9,19 +9,21 @@ fragment FilePopoverFragment on GitBlob {
     languages
     byteSize
     totalLines
-    commit {
-        abbreviatedOID
-        oid
-        subject
-        canonicalURL
+    blame {
         author {
             date
             person {
                 __typename
+                name
                 displayName
                 avatarURL
-                name
             }
+        }
+        commit {
+            oid
+            abbreviatedOID
+            subject
+            canonicalURL
         }
     }
 }
