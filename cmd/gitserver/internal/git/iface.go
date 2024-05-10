@@ -107,6 +107,9 @@ type GitBackend interface {
 	// The caller must call Close on the returned ReadDirIterator when done.
 	ReadDir(ctx context.Context, commit api.CommitID, path string, recursive bool) (ReadDirIterator, error)
 
+	// CommitLog returns a list of commits in the given boundaries specified by opt.
+	CommitLog(ctx context.Context, opt CommitLogOpts) (CommitLogIterator, error)
+
 	// Exec is a temporary helper to run arbitrary git commands from the exec endpoint.
 	// No new usages of it should be introduced and once the migration is done we will
 	// remove this method.
@@ -147,6 +150,57 @@ type GitBackend interface {
 	//
 	// If either the base or head <tree-ish> id does not exist, a RevisionNotFoundError is returned.
 	ChangedFiles(ctx context.Context, base, head string) (ChangedFilesIterator, error)
+}
+
+type CommitLogOrder int
+
+const (
+	CommitLogOrderDefault CommitLogOrder = iota
+	CommitLogOrderCommitDate
+	CommitLogOrderTopoDate
+)
+
+type CommitLogOpts struct {
+	Range   string
+	AllRefs bool
+	After   time.Time
+	Before  time.Time
+	// MaxCommits is an optional parameter to specify the maximum number of commits
+	// to return. If max_commits is 0, all commits that match the criteria will be
+	// returned.
+	MaxCommits uint32
+	// Skip is an optional parameter to specify the number of commits to skip.
+	// This can be used to implement a poor mans pagination.
+	// TODO: We want to switch to more proper gRPC pagination here later.
+	Skip uint32
+	// When finding commits to include, follow only the first parent commit upon
+	// seeing a merge commit. This option can give a better overview when viewing
+	// the evolution of a particular topic branch, because merges into a topic
+	// branch tend to be only about adjusting to updated upstream from time to time,
+	// and this option allows you to ignore the individual commits brought in to
+	// your history by such a merge.
+	FollowOnlyFirstParent bool
+	// If true, the modified_files field in the GetCommitResponse will be
+	// populated.
+	IncludeModifiedFiles bool
+	Order                CommitLogOrder
+	// Include only commits whose commit message contains this substring.
+	MessageQuery string
+	// include only commits whose author matches this.
+	AuthorQuery string
+	// include only commits that touch this file path.
+	Path string
+	// Follow the history of the path beyond renames, only effective when used with
+	// `path`.
+	FollowPathRenames bool
+}
+
+// CommitLogIterator iterates over commits.
+type CommitLogIterator interface {
+	// Next returns the next commit and the files it modifies, if requested.
+	Next() (*GitCommitWithFiles, error)
+	// Close releases resources associated with the iterator.
+	Close() error
 }
 
 type GitDiffComparisonType int

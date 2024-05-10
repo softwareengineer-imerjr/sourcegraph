@@ -35,6 +35,9 @@ type MockGitserverServiceClient struct {
 	// CheckPerforceCredentialsFunc is an instance of a mock function object
 	// controlling the behavior of the method CheckPerforceCredentials.
 	CheckPerforceCredentialsFunc *GitserverServiceClientCheckPerforceCredentialsFunc
+	// CommitLogFunc is an instance of a mock function object controlling
+	// the behavior of the method CommitLog.
+	CommitLogFunc *GitserverServiceClientCommitLogFunc
 	// ContributorCountsFunc is an instance of a mock function object
 	// controlling the behavior of the method ContributorCounts.
 	ContributorCountsFunc *GitserverServiceClientContributorCountsFunc
@@ -146,6 +149,11 @@ func NewMockGitserverServiceClient() *MockGitserverServiceClient {
 		},
 		CheckPerforceCredentialsFunc: &GitserverServiceClientCheckPerforceCredentialsFunc{
 			defaultHook: func(context.Context, *v1.CheckPerforceCredentialsRequest, ...grpc.CallOption) (r0 *v1.CheckPerforceCredentialsResponse, r1 error) {
+				return
+			},
+		},
+		CommitLogFunc: &GitserverServiceClientCommitLogFunc{
+			defaultHook: func(context.Context, *v1.CommitLogRequest, ...grpc.CallOption) (r0 v1.GitserverService_CommitLogClient, r1 error) {
 				return
 			},
 		},
@@ -317,6 +325,11 @@ func NewStrictMockGitserverServiceClient() *MockGitserverServiceClient {
 				panic("unexpected invocation of MockGitserverServiceClient.CheckPerforceCredentials")
 			},
 		},
+		CommitLogFunc: &GitserverServiceClientCommitLogFunc{
+			defaultHook: func(context.Context, *v1.CommitLogRequest, ...grpc.CallOption) (v1.GitserverService_CommitLogClient, error) {
+				panic("unexpected invocation of MockGitserverServiceClient.CommitLog")
+			},
+		},
 		ContributorCountsFunc: &GitserverServiceClientContributorCountsFunc{
 			defaultHook: func(context.Context, *v1.ContributorCountsRequest, ...grpc.CallOption) (*v1.ContributorCountsResponse, error) {
 				panic("unexpected invocation of MockGitserverServiceClient.ContributorCounts")
@@ -474,6 +487,9 @@ func NewMockGitserverServiceClientFrom(i v1.GitserverServiceClient) *MockGitserv
 		},
 		CheckPerforceCredentialsFunc: &GitserverServiceClientCheckPerforceCredentialsFunc{
 			defaultHook: i.CheckPerforceCredentials,
+		},
+		CommitLogFunc: &GitserverServiceClientCommitLogFunc{
+			defaultHook: i.CommitLog,
 		},
 		ContributorCountsFunc: &GitserverServiceClientContributorCountsFunc{
 			defaultHook: i.ContributorCounts,
@@ -1157,6 +1173,127 @@ func (c GitserverServiceClientCheckPerforceCredentialsFuncCall) Args() []interfa
 // Results returns an interface slice containing the results of this
 // invocation.
 func (c GitserverServiceClientCheckPerforceCredentialsFuncCall) Results() []interface{} {
+	return []interface{}{c.Result0, c.Result1}
+}
+
+// GitserverServiceClientCommitLogFunc describes the behavior when the
+// CommitLog method of the parent MockGitserverServiceClient instance is
+// invoked.
+type GitserverServiceClientCommitLogFunc struct {
+	defaultHook func(context.Context, *v1.CommitLogRequest, ...grpc.CallOption) (v1.GitserverService_CommitLogClient, error)
+	hooks       []func(context.Context, *v1.CommitLogRequest, ...grpc.CallOption) (v1.GitserverService_CommitLogClient, error)
+	history     []GitserverServiceClientCommitLogFuncCall
+	mutex       sync.Mutex
+}
+
+// CommitLog delegates to the next hook function in the queue and stores the
+// parameter and result values of this invocation.
+func (m *MockGitserverServiceClient) CommitLog(v0 context.Context, v1 *v1.CommitLogRequest, v2 ...grpc.CallOption) (v1.GitserverService_CommitLogClient, error) {
+	r0, r1 := m.CommitLogFunc.nextHook()(v0, v1, v2...)
+	m.CommitLogFunc.appendCall(GitserverServiceClientCommitLogFuncCall{v0, v1, v2, r0, r1})
+	return r0, r1
+}
+
+// SetDefaultHook sets function that is called when the CommitLog method of
+// the parent MockGitserverServiceClient instance is invoked and the hook
+// queue is empty.
+func (f *GitserverServiceClientCommitLogFunc) SetDefaultHook(hook func(context.Context, *v1.CommitLogRequest, ...grpc.CallOption) (v1.GitserverService_CommitLogClient, error)) {
+	f.defaultHook = hook
+}
+
+// PushHook adds a function to the end of hook queue. Each invocation of the
+// CommitLog method of the parent MockGitserverServiceClient instance
+// invokes the hook at the front of the queue and discards it. After the
+// queue is empty, the default hook function is invoked for any future
+// action.
+func (f *GitserverServiceClientCommitLogFunc) PushHook(hook func(context.Context, *v1.CommitLogRequest, ...grpc.CallOption) (v1.GitserverService_CommitLogClient, error)) {
+	f.mutex.Lock()
+	f.hooks = append(f.hooks, hook)
+	f.mutex.Unlock()
+}
+
+// SetDefaultReturn calls SetDefaultHook with a function that returns the
+// given values.
+func (f *GitserverServiceClientCommitLogFunc) SetDefaultReturn(r0 v1.GitserverService_CommitLogClient, r1 error) {
+	f.SetDefaultHook(func(context.Context, *v1.CommitLogRequest, ...grpc.CallOption) (v1.GitserverService_CommitLogClient, error) {
+		return r0, r1
+	})
+}
+
+// PushReturn calls PushHook with a function that returns the given values.
+func (f *GitserverServiceClientCommitLogFunc) PushReturn(r0 v1.GitserverService_CommitLogClient, r1 error) {
+	f.PushHook(func(context.Context, *v1.CommitLogRequest, ...grpc.CallOption) (v1.GitserverService_CommitLogClient, error) {
+		return r0, r1
+	})
+}
+
+func (f *GitserverServiceClientCommitLogFunc) nextHook() func(context.Context, *v1.CommitLogRequest, ...grpc.CallOption) (v1.GitserverService_CommitLogClient, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if len(f.hooks) == 0 {
+		return f.defaultHook
+	}
+
+	hook := f.hooks[0]
+	f.hooks = f.hooks[1:]
+	return hook
+}
+
+func (f *GitserverServiceClientCommitLogFunc) appendCall(r0 GitserverServiceClientCommitLogFuncCall) {
+	f.mutex.Lock()
+	f.history = append(f.history, r0)
+	f.mutex.Unlock()
+}
+
+// History returns a sequence of GitserverServiceClientCommitLogFuncCall
+// objects describing the invocations of this function.
+func (f *GitserverServiceClientCommitLogFunc) History() []GitserverServiceClientCommitLogFuncCall {
+	f.mutex.Lock()
+	history := make([]GitserverServiceClientCommitLogFuncCall, len(f.history))
+	copy(history, f.history)
+	f.mutex.Unlock()
+
+	return history
+}
+
+// GitserverServiceClientCommitLogFuncCall is an object that describes an
+// invocation of method CommitLog on an instance of
+// MockGitserverServiceClient.
+type GitserverServiceClientCommitLogFuncCall struct {
+	// Arg0 is the value of the 1st argument passed to this method
+	// invocation.
+	Arg0 context.Context
+	// Arg1 is the value of the 2nd argument passed to this method
+	// invocation.
+	Arg1 *v1.CommitLogRequest
+	// Arg2 is a slice containing the values of the variadic arguments
+	// passed to this method invocation.
+	Arg2 []grpc.CallOption
+	// Result0 is the value of the 1st result returned from this method
+	// invocation.
+	Result0 v1.GitserverService_CommitLogClient
+	// Result1 is the value of the 2nd result returned from this method
+	// invocation.
+	Result1 error
+}
+
+// Args returns an interface slice containing the arguments of this
+// invocation. The variadic slice argument is flattened in this array such
+// that one positional argument and three variadic arguments would result in
+// a slice of four, not two.
+func (c GitserverServiceClientCommitLogFuncCall) Args() []interface{} {
+	trailing := []interface{}{}
+	for _, val := range c.Arg2 {
+		trailing = append(trailing, val)
+	}
+
+	return append([]interface{}{c.Arg0, c.Arg1}, trailing...)
+}
+
+// Results returns an interface slice containing the results of this
+// invocation.
+func (c GitserverServiceClientCommitLogFuncCall) Results() []interface{} {
 	return []interface{}{c.Result0, c.Result1}
 }
 

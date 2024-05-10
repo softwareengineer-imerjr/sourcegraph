@@ -308,6 +308,72 @@ service GitserverService {
   rpc ReadDir(ReadDirRequest) returns (stream ReadDirResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
+  rpc CommitLog(CommitLogRequest) returns (stream CommitLogResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+}
+
+message CommitLogRequest {
+  // repo_name is the name of the repo to run the blame operation in.
+  // Note: We use field ID 2 here to reserve 1 for a future repo int32 field.
+  string repo_name = 2;
+  // Optional specifier to limit the commits returned. If not given, all commits
+  // in HEAD are considered.
+  oneof commits {
+    // commit range (revspec, "A..B", "A...B", etc.)
+    bytes range = 3;
+    // if true, all refs are searched for commits.
+    bool all_refs = 4;
+  };
+  // After is an optional parameter to specify the earliest commit to consider
+  google.protobuf.Timestamp after = 5;
+  // Before is an optional parameter to specify the latest commit to consider
+  google.protobuf.Timestamp before = 6;
+  // MaxCommits is an optional parameter to specify the maximum number of commits
+  // to return. If max_commits is 0, all commits that match the criteria will be
+  // returned.
+  uint32 max_commits = 7;
+  // Skip is an optional parameter to specify the number of commits to skip.
+  // This can be used to implement a poor mans pagination.
+  // TODO: We want to switch to more proper gRPC pagination here later.
+  uint32 skip = 8;
+	// When finding commits to include, follow only the first parent commit upon
+	// seeing a merge commit. This option can give a better overview when viewing
+	// the evolution of a particular topic branch, because merges into a topic
+	// branch tend to be only about adjusting to updated upstream from time to time,
+	// and this option allows you to ignore the individual commits brought in to
+	// your history by such a merge.
+  bool follow_only_first_parent = 9;
+  // If true, the modified_files field in the GetCommitResponse will be
+  // populated.
+  bool include_modified_files = 10;
+  enum CommitLogOrder {
+    // Uses the default ordering of git log: in reverse chronological order.
+    // See https://git-scm.com/docs/git-log#_commit_ordering for more details.
+    COMMIT_LOG_ORDER_UNSPECIFIED = 0;
+    // Show no parents before all of its children are shown, but otherwise show commits
+    // in the commit timestamp order.
+    // See https://git-scm.com/docs/git-log#_commit_ordering for more details.
+    COMMIT_LOG_ORDER_COMMIT_DATE = 1;
+    // Show no parents before all of its children are shown, and avoid showing commits
+    // on multiple lines of history intermixed.
+    // See https://git-scm.com/docs/git-log#_commit_ordering for more details.
+    COMMIT_LOG_ORDER_TOPO_DATE = 2;
+  };
+  CommitLogOrder order = 11;
+  // Include only commits whose commit message contains this substring.
+  bytes message_query = 12;
+  // include only commits whose author matches this.
+  bytes author_query = 13;
+  // include only commits that touch this file path.
+  bytes path = 14;
+  // Follow the history of the path beyond renames, only effective when used with
+  // `path`.
+  bool follow_path_renames = 15;
+}
+
+message CommitLogResponse {
+  repeated GetCommitResponse commits = 1;
 }
 
 message ContributorCountsRequest {

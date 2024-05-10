@@ -1089,6 +1089,34 @@ func readDirRequestToLogFields(req *proto.ReadDirRequest) []log.Field {
 	}
 }
 
+func (l *loggingGRPCServer) CommitLog(request *proto.CommitLogRequest, server proto.GitserverService_CommitLogServer) error {
+	start := time.Now()
+
+	defer func() {
+		elapsed := time.Since(start)
+
+		doLog(
+			l.logger,
+			proto.GitserverService_CommitLog_FullMethodName,
+			status.Code(server.Context().Err()),
+			trace.Context(server.Context()).TraceID,
+			elapsed,
+
+			commitLogRequestToLogFields(request)...,
+		)
+	}()
+
+	return l.base.CommitLog(request, server)
+}
+
+func commitLogRequestToLogFields(req *proto.CommitLogRequest) []log.Field {
+	return []log.Field{
+		log.String("repoName", req.GetRepoName()),
+		log.String("range", string(req.GetRange())),
+		log.Bool("all_refs", req.GetAllRefs()),
+	}
+}
+
 type loggingRepositoryServiceServer struct {
 	base   proto.GitserverRepositoryServiceServer
 	logger log.Logger

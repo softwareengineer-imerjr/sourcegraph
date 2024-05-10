@@ -460,6 +460,51 @@ func (hr *observableReadDirIterator) Close() error {
 	return err
 }
 
+func (b *observableBackend) CommitLog(ctx context.Context, opt CommitLogOpts) (_ CommitLogIterator, err error) {
+	ctx, errCollector, endObservation := b.operations.commitLog.WithErrors(ctx, &err, observation.Args{
+		Attrs: []attribute.KeyValue{
+			attribute.String("range", opt.Range),
+			attribute.Int("max_commits", int(opt.MaxCommits)),
+			attribute.Bool("recursive", opt.AllRefs),
+		},
+	})
+	ctx, cancel := context.WithCancel(ctx)
+	endObservation.OnCancel(ctx, 1, observation.Args{})
+
+	concurrentOps.WithLabelValues("CommitLog").Inc()
+
+	it, err := b.backend.CommitLog(ctx, opt)
+	if err != nil {
+		concurrentOps.WithLabelValues("CommitLog").Dec()
+		cancel()
+		return nil, err
+	}
+
+	return &observableCommitLogIterator{
+		inner: it,
+		onClose: func(err error) {
+			concurrentOps.WithLabelValues("CommitLog").Dec()
+			errCollector.Collect(&err)
+			cancel()
+		},
+	}, nil
+}
+
+type observableCommitLogIterator struct {
+	inner   CommitLogIterator
+	onClose func(err error)
+}
+
+func (hr *observableCommitLogIterator) Next() (*gitdomain.Commit, []string, error) {
+	return hr.inner.Next()
+}
+
+func (hr *observableCommitLogIterator) Close() error {
+	err := hr.inner.Close()
+	hr.onClose(err)
+	return err
+}
+
 type operations struct {
 	configGet         *observation.Operation
 	configSet         *observation.Operation
@@ -483,6 +528,7 @@ type operations struct {
 	changedFiles      *observation.Operation
 	stat              *observation.Operation
 	readDir           *observation.Operation
+	commitLog         *observation.Operation
 }
 
 func newOperations(observationCtx *observation.Context) *operations {
@@ -533,6 +579,7 @@ func newOperations(observationCtx *observation.Context) *operations {
 		changedFiles:      op("changed-files"),
 		stat:              op("stat"),
 		readDir:           op("read-dir"),
+		commitLog:         op("commit-log"),
 	}
 }
 

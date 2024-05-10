@@ -140,10 +140,6 @@ func TestDiffWithSubRepoFiltering(t *testing.T) {
 	}
 }
 
-func TestLogPartsPerCommitInSync(t *testing.T) {
-	require.Equal(t, partsPerCommit-1, strings.Count(logFormatWithoutRefs, "%x00"))
-}
-
 func TestCommits_After(t *testing.T) {
 	ClientMocks.LocalGitserver = true
 	defer ResetClientMocks()
@@ -230,10 +226,12 @@ func TestCommits_After(t *testing.T) {
 					gitCommands[i] = fmt.Sprintf("GIT_COMMITTER_NAME=a GIT_COMMITTER_EMAIL=a@a.com GIT_COMMITTER_DATE=%s git commit --allow-empty -m foo --author='a <a@a.com>'", date)
 				}
 				repo := MakeGitRepository(t, gitCommands...)
+				after, err := gitdomain.ParseGitDate(tc.after, time.Now)
+				require.NoError(t, err)
 				got, err := client.Commits(ctx, repo, CommitsOptions{
 					N:     2,
 					Range: tc.revspec,
-					After: tc.after,
+					After: after,
 				})
 				require.NoError(t, err)
 
@@ -257,9 +255,11 @@ func TestCommits_After(t *testing.T) {
 				checker := getTestSubRepoPermsChecker("file2")
 				client := NewTestClient(t).WithChecker(checker)
 				repo := MakeGitRepository(t, gitCommands...)
+				after, err := gitdomain.ParseGitDate(tc.after, time.Now)
+				require.NoError(t, err)
 				got, err := client.Commits(ctx, repo, CommitsOptions{
 					N:     2,
-					After: tc.after,
+					After: after,
 					Range: tc.revspec,
 				})
 				if err != nil {
@@ -274,7 +274,7 @@ func TestCommits_After(t *testing.T) {
 				client = NewTestClient(t).WithChecker(checker)
 				got, err = client.Commits(ctx, repo, CommitsOptions{
 					N:     2,
-					After: tc.after,
+					After: after,
 					Range: tc.revspec,
 				})
 				if err != nil {
@@ -582,7 +582,7 @@ func TestRepository_Commits_options(t *testing.T) {
 		},
 		"before": {
 			opt: CommitsOptions{
-				Before: "2006-01-02T15:04:07Z",
+				Before: MustParseTime(time.RFC3339, "2006-01-02T15:04:07Z"),
 				Range:  "HEAD",
 				N:      1,
 			},
@@ -613,14 +613,13 @@ func TestRepository_Commits_options(t *testing.T) {
 		}
 		t.Run("empty repo"+subRepo, func(t *testing.T) {
 			repo := MakeGitRepository(t)
-			before := ""
-			after := time.Date(2022, 11, 11, 12, 10, 0, 4, time.UTC).Format(time.RFC3339)
+			after := time.Date(2022, 11, 11, 12, 10, 0, 4, time.UTC)
 			client := NewTestClient(t).WithChecker(checker)
-			_, err := client.Commits(ctx, repo, CommitsOptions{N: 0, Order: CommitsOrderCommitDate, After: after, Before: before})
+			_, err := client.Commits(ctx, repo, CommitsOptions{N: 0, Order: CommitsOrderCommitDate, After: after})
 			if err == nil {
 				t.Error("expected error, got nil")
 			}
-			wantErr := `git command [git log --format=format:%x1e%H%x00%aN%x00%aE%x00%at%x00%cN%x00%cE%x00%ct%x00%B%x00%P%x00 --after=` + after + " --date-order"
+			wantErr := `git command [git log --format=format:%x1e%H%x00%aN%x00%aE%x00%at%x00%cN%x00%cE%x00%ct%x00%B%x00%P%x00 --after=`
 			if subRepo != "" {
 				wantErr += " --name-only"
 			}

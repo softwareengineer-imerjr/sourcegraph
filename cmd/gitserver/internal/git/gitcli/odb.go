@@ -88,7 +88,14 @@ const (
 	logFormatWithoutRefs = "--format=format:%x1e%H%x00%aN%x00%aE%x00%at%x00%cN%x00%cE%x00%ct%x00%B%x00%P%x00"
 )
 
-func parseCommitLogOutput(rawCommit []byte) (*git.GitCommitWithFiles, error) {
+func parseCommitLogOutput(r io.Reader) (*git.GitCommitWithFiles, error) {
+	// read from r until the first null byte:
+	commitScanner := bufio.NewScanner(r)
+	// We use an increased buffer size since sub-repo permissions
+	// can result in very lengthy output.
+	commitScanner.Buffer(make([]byte, 0, 65536), 4294967296)
+	commitScanner.Split(commitSplitFunc)
+
 	parts := bytes.Split(rawCommit, []byte{'\x00'})
 	if len(parts) != partsPerCommit {
 		return nil, errors.Newf("internal error: expected %d parts, got %d", partsPerCommit, len(parts))

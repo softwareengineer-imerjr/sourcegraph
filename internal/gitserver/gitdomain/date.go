@@ -1,6 +1,7 @@
-package query
+package gitdomain
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 	"time"
@@ -8,7 +9,6 @@ import (
 	"github.com/tj/go-naturaldate"
 
 	"github.com/sourcegraph/sourcegraph/internal/lazyregexp"
-	"github.com/sourcegraph/sourcegraph/lib/errors"
 )
 
 // ParseGitDate implements date parsing for before/after arguments.
