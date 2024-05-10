@@ -18,6 +18,8 @@ type GitBackend interface {
 	// Config returns a backend for interacting with git configuration at .git/config.
 	Config() GitConfigBackend
 	// GetObject allows to read a git object from the git object database.
+	//
+	// If the object specified by objectName does not exist, a RevisionNotFoundError is returned.
 	GetObject(ctx context.Context, objectName string) (*gitdomain.GitObject, error)
 	// MergeBase finds the merge base commit for the given base and head revspecs.
 	// Returns an empty string and no error if no common merge-base was found.
@@ -121,6 +123,16 @@ type GitBackend interface {
 	// If one of the two given revspecs does not exist, a RevisionNotFoundError
 	// is returned.
 	BehindAhead(ctx context.Context, left, right string) (*gitdomain.BehindAhead, error)
+
+	// ChangedFiles returns the list of files that have been added, modified, or
+	// deleted in the entire repository between the two given <tree-ish> identifiers (e.g., commit, branch, tag).
+	//
+	// Renamed files are considered as a deletion and an addition.
+	//
+	// If base is omitted, the parent of head is used as the base.
+	//
+	// If either the base or head <tree-ish> id does not exist, a RevisionNotFoundError is returned.
+	ChangedFiles(ctx context.Context, base, head string) (ChangedFilesIterator, error)
 }
 
 type GitDiffComparisonType int
@@ -196,6 +208,20 @@ type ListRefsOpts struct {
 	PointsAtCommit []api.CommitID
 	// If set, only return refs that contain the given commit shas.
 	Contains []api.CommitID
+}
+
+// ChangedFilesIterator iterates over changed files. The iterator must be closed
+// via Close() when the caller is done with it.
+type ChangedFilesIterator interface {
+	// Next returns the next changed file, or an error. The iterator must be closed
+	// via Close() when the caller is done with it.
+	//
+	// If there are no more files, io.EOF is returned.
+	Next() (gitdomain.PathStatus, error)
+	// Close releases resources associated with the iterator.
+	//
+	// After Close() is called, Next() will always return io.EOF.
+	Close() error
 }
 
 // RefIterator iterates over refs.
