@@ -80,14 +80,7 @@ For example:
 
         <div class="commit-info">
             <div class="commit">
-                <!--
-                A <div> element is needed for subject and commit message
-                because the <small> element alone doesn't work with
-                text-overflow: ellipsis.
-                -->
-                <div class="subject">
-                    <small>{subject}</small>
-                </div>
+                <small class="subject">{subject}</small>
                 {#if commitSHA}
                     <div class="commit-number">
                         <small class="commit-number"
@@ -164,46 +157,6 @@ For example:
         }
     }
 
-    .header {
-        display: flex;
-        flex-flow: row-nowrap;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5rem 0.75rem;
-        background-color: var(--subtle-bg);
-
-        .icon-name-access {
-            display: flex;
-            flex-flow: row nowrap;
-            justify-content: space-between;
-            align-items: center;
-
-            .repo-name {
-                color: var(--text-body);
-                // only needed when icon is present
-                margin: 0rem 0.5rem 0rem 0rem;
-            }
-
-            .access {
-                border: 1px solid var(--text-muted);
-                color: var(--text-muted);
-                padding: 0rem 0.5rem;
-                border-radius: 1rem;
-            }
-        }
-        .code-host {
-            display: flex;
-            flex-flow: row nowrap;
-            justify-content: flex-end;
-            align-items: center;
-
-            div {
-                color: var(--text-muted);
-                margin-left: 0.25rem;
-            }
-        }
-    }
-
     .divider {
         border-bottom: 1px solid var(--border-color);
         width: 100%;
@@ -266,10 +219,8 @@ For example:
                 width: 250px;
 
                 .subject {
-                    text-overflow: ellipsis;
-                    overflow: hidden;
-                    white-space: nowrap;
                     color: var(--text-body);
+                    white-space: normal;
                 }
 
                 .commit-number {
@@ -286,118 +237,6 @@ For example:
             }
         }
     }
-
-    .footer {
-        color: var(--text-muted);
-        display: flex;
-        flex-flow: row nowrap;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.75rem;
-    }
-
-    .last-commit {
-        display: flex;
-        flex-flow: row nowrap;
-        justify-content: space-between;
-        align-items: flex-start;
-        padding: 0.75rem;
-
-        .heading {
-            color: var(--text-muted);
-        }
-
-        .commit-info {
-            display: flex;
-            flex-flow: column nowrap;
-            justify-content: center;
-            align-items: flex-end;
-            gap: 0.25rem 0rem;
-
-            .commit {
-                display: flex;
-                flex-flow: row nowrap;
-                justify-content: flex-end;
-                align-items: center;
-                gap: 0.25rem 0rem;
-                width: 250px;
-
-                .subject {
-                    text-overflow: ellipsis;
-                    overflow: hidden;
-                    white-space: nowrap;
-                    color: var(--text-body);
-                }
-
-                .commit-number {
-                    color: var(--text-muted);
-                    align-self: center;
-                }
-            }
-
-            .author {
-                display: flex;
-                flex-flow: row nowrap;
-                color: var(--text-muted);
-                gap: 0.5rem 0.25rem;
-            }
-        }
-    }
-    /* .last-commit {
-        display: flex;
-        flex-flow: column nowrap;
-        justify-content: space-between;
-        padding: 0.75rem;
-
-        .title-and-commit {
-            display: flex;
-            flex-flow: row nowrap;
-            justify-content: space-between;
-            align-items: center;
-
-            .heading {
-                color: var(--text-muted);
-            }
-
-            .commit-and-number {
-                display: flex;
-                flex-flow: row nowrap;
-                align-items: center;
-                justify-content: flex-end;
-                width: 275px;
-
-                .commit {
-                    color: var(--text-body);
-                    margin-right: 0.25rem;
-                    text-overflow: ellipsis;
-                    overflow: hidden;
-                    white-space: nowrap;
-                }
-
-                .number {
-                    color: var(--text-muted);
-                }
-            }
-        } */
-
-    /* .author-and-time {
-            color: var(--text-muted);
-            display: flex;
-            flex-flow: row nowrap;
-            justify-content: flex-end;
-            align-items: center;
-
-            .author {
-                color: var(--text-muted);
-                margin-right: 0.5rem;
-                margin-left: 0.5rem;
-            }
-
-            .separator {
-                margin-right: 0.5rem;
-            }
-        }
-    } */
 
     .footer {
         color: var(--text-muted);

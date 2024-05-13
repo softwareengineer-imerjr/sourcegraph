@@ -107,11 +107,9 @@
         font-size: 0.875rem;
         background-clip: padding-box;
         background-color: var(--dropdown-bg);
-        border: 1px solid var(--dropdown-border-color);
         border-radius: var(--popover-border-radius);
         color: var(--body-color);
         box-shadow: var(--popover-shadow);
         border: 0;
-        border-radius: var(--popover-border-radius);
     }
 </style>

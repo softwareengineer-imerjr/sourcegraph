@@ -5,6 +5,7 @@
 
     import { goto } from '$app/navigation'
     import Icon from '$lib/Icon.svelte'
+    import Popover from '$lib/Popover.svelte'
     import { type FileTreeProvider, NODE_LIMIT, type TreeEntry } from '$lib/repo/api/tree'
     import FileIcon from '$lib/repo/FileIcon.svelte'
     import FilePopover from '$lib/repo/filePopover/FilePopover.svelte'
@@ -13,7 +14,6 @@
     import TreeView, { setTreeContext } from '$lib/TreeView.svelte'
     import { createForwardStore } from '$lib/utils'
     import { Alert } from '$lib/wildcard'
-    import Popover from '$lib/Popover.svelte'
 
     export let repoName: string
     export let treeProvider: FileTreeProvider
@@ -120,12 +120,9 @@
                         {/if}
                         {isRoot ? '..' : entry.name}
                     </a>
-                    <div slot="content">
-                        <!--
-                        TODO: should revision be the revision associated with the path, not the other way around?
-                        -->
+                    <svelte:fragment slot="content">
                         <FilePopover {repoName} revspec={revision} filePath={entry.path} {entry} />
-                    </div>
+                    </svelte:fragment>
                 </Popover>
             {/if}
         </svelte:fragment>

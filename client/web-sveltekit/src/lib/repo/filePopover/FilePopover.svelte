@@ -47,10 +47,6 @@
         return null
     }
 
-    onMount(async () => {
-        fetchPopoverData()
-    })
-
     const abbreviatedFilePath = (filePath: string): string => {
         let parts = filePath.split('/')
         if (parts.length <= 3) return parts.join(' / ')
@@ -64,6 +60,10 @@
     }
 
     const CENTER_DOT = '\u00B7' // interpunct
+
+    onMount(async () => {
+        fetchPopoverData()
+    })
 
     $: abbreviatedPath = abbreviatedFilePath(filePath)
     $: repo = displayRepoName(repoName).replace('/', ' / ')
@@ -84,7 +84,7 @@
                 {#if dirFrag}
                     <Icon svgPath={mdiFolder} --icon-fill-color="var(--primary)" --icon-size="1.5rem" />
                 {:else if fileFrag}
-                    <FileIcon file={entry.__typename === 'GitBlob' ? entry : null} inline={false} size="1.5rem" />
+                    <FileIcon file={entry} inline={false} size="1.5rem" />
                 {/if}
                 <div class="file">
                     <div>{fileOrDirName}</div>

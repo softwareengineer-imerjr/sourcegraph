@@ -12,6 +12,7 @@
 
     export let entry: T
     export let treeProvider: TreeProvider<T>
+    let label: HTMLElement | undefined
 
     $: treeState = getTreeContext()
     $: nodeID = treeProvider.getNodeID(entry)
@@ -22,6 +23,20 @@
     $: tabindex = $treeState.focused === nodeID ? 0 : -1
 
     $: children = expandable && expanded ? treeProvider.fetchChildren(entry) : null
+    $: if (selected && label) {
+        const container = label.closest('[role="tree"]')
+        if (container) {
+            // Only scroll the active tree entry into the 'center' if the selected entry changed
+            // by something other than user interaction. If we always 'center' then the tree
+            // will "jump" as the user selects an entry with the keyboard or mouse, which is
+            // disorienting.
+            // But if we never 'center' then going back and forth might position the selected
+            // entry at the top or bottom of the scroll container, which is not very visible.
+            // So we only 'center' if focus is not on the tree container, which likely means
+            // that the user is not interacting with the tree.
+            label.scrollIntoView({ block: container.contains(document.activeElement) ? 'nearest' : 'center' })
+        }
+    }
 
     function toggleOpen(expand?: boolean) {
         if (expandable) {
