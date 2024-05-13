@@ -91,9 +91,10 @@ esbuild(
         "monaco-yaml/lib/esm/yaml.worker",
         # shouldn't be needed, or is it?
         "supports-color",
-        "minipass",
+        # "minipass",
     ],
     format = "cjs",
+    # js_log_level = "debug",
     platform = "node",
     sourcemap = False,
     splitting = False,

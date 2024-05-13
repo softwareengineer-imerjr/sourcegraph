@@ -1,12 +1,48 @@
 diff --git a/esbuild/private/plugins/bazel-sandbox.js b/esbuild/private/plugins/bazel-sandbox.js
-index 84f0921..86b8e7c 100644
+index 84f0921..81f31af 100644
 --- a/esbuild/private/plugins/bazel-sandbox.js
 +++ b/esbuild/private/plugins/bazel-sandbox.js
-@@ -62,12 +62,29 @@ async function resolveInExecroot(build, importPath, otherOptions) {
+@@ -28,15 +28,24 @@ function bazelSandboxPlugin() {
+           }
+           otherOptions.pluginData.executedSandboxPlugin = true
+
++          if (importPath === 'minipass') {
++            console.error(`DEBUG NOAH BEGIN: \n\tIMPORTER ${otherOptions.importer}\n\tRESOLVEDIR ${otherOptions.resolveDir}\n\tIMPORT ${importPath}`)
++          }
++
+           // Prevent us from loading different forms of a module (CJS vs ESM).
+           if (pkgImport.test(importPath)) {
+-            if (!moduleCache.has(importPath)) {
+-              moduleCache.set(
+-                importPath,
+-                resolveInExecroot(build, importPath, otherOptions)
+-              )
+-            }
+-            return await moduleCache.get(importPath)
++            // const isCached = !moduleCache.has(importPath)
++            // if (isCached) {
++            //   moduleCache.set(
++            //     importPath,
++            //     resolveInExecroot(build, importPath, otherOptions)
++            //   )
++            // }
++            // const res = await moduleCache.get(importPath)
++            // if (importPath === 'minipass' && isCached) {
++            //   console.error(`DEBUG NOAH RETURN CACHE: \n\tIMPORTER ${otherOptions.importer}\n\tRESOLVEDIR ${otherOptions.resolveDir}\n\tIMPORT ${importPath}\n\tRESOLVED ${res.path}`)
++            // }
++            // return res
+           }
+           return await resolveInExecroot(build, importPath, otherOptions)
+         }
+@@ -62,8 +71,29 @@ async function resolveInExecroot(build, importPath, otherOptions) {
      return result
    }
 
-+  return correctImportPath(result, otherOptions, false)
++  const res = correctImportPath(result, otherOptions, false)
++  if (importPath ==='minipass') {
++    console.error(`DEBUG NOAH RETURN RESOLVE: \n\tIMPORTER ${otherOptions.importer}\n\tRESOLVEDIR ${otherOptions.resolveDir}\n\tIMPORT ${importPath}\n\tRESOLVED ${res.path}`)
++  }
++  return res
 +}
 +
 +function correctImportPath(result, otherOptions, firstEntry) {
@@ -28,8 +64,3 @@ index 84f0921..86b8e7c 100644
      // If it tried to leave bazel-bin, error out completely.
      if (!result.path.includes(bindir)) {
        throw new Error(
--        `Error: esbuild resolved a path outside of BAZEL_BINDIR (${bindir}): ${result.path}`
-+        `Error: esbuild resolved a path outside of BAZEL_BINDIR (${bindir}): ${result.path}`
-       )
-     }
-     // Otherwise remap the bindir-relative path
