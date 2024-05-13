@@ -13,7 +13,7 @@
     import type { FileIcon_GitBlob } from '../FileIcon.gql'
     import FileIcon from '../FileIcon.svelte'
 
-    import { type DirPopoverFragment, type FilePopoverFragment } from './FilePopover.gql.ts'
+    import { type DirPopoverFragment, type FilePopoverFragment } from './FilePopover.gql'
     import NodeLine from './NodeLine.svelte'
 
     export let repoName: string
@@ -70,85 +70,79 @@
     $: repoAndPath = `${repo} ${CENTER_DOT} ${abbreviatedPath}`
     $: fileOrDirName = getFileName(filePath)
     $: fileCommit = fileFrag?.blame[0].commit
-    /* $: totalFiles = dirFrag?.files ?? dirFrag?.files.length
-    $: totalSubmodules = dirFrag?.directories ?? dirFrag?.directories.length */
-    /* $: fileStats = fileFrag !== null ? "hi" : "not hi"
-        `${fileFrag?.languages[0]} ${CENTER_DOT} ${fileFrag?.blame.} Lines ${CENTER_DOT} ${formatBytes(
-            fileFrag.byteSize
-        )}`
-    $: console.log(frag)
-    $: fileInfo = isFile
-        ? `${frag?.languages[0]} ${CENTER_DOT} ${frag.blame.byteSize} Lines ${CENTER_DOT} ${formatBytes(frag.byteSize)}`
-        : `${totalSubmodules} subdirectories ${CENTER_DOT} ${totalFiles} files`
-    $: avatar = frag?.blame?.commit.author.person */
-    $: typename = entry.__typename
+    $: languages = fileFrag?.languages[0]
 </script>
 
-<div class="root">
-    <div class="desc">
-        <div class="repo-and-path">
-            <small>{repoAndPath}</small>
+{#if fileFrag || dirFrag}
+    <div class="root">
+        <div class="desc">
+            <div class="repo-and-path">
+                <small>{repoAndPath}</small>
+            </div>
+
+            <div class="lang-and-file">
+                {#if dirFrag}
+                    <Icon svgPath={mdiFolder} --icon-fill-color="var(--primary)" --icon-size="1.5rem" />
+                {:else if fileFrag}
+                    <FileIcon file={entry.__typename === 'GitBlob' ? entry : null} inline={false} size="1.5rem" />
+                {/if}
+                <div class="file">
+                    <div>{fileOrDirName}</div>
+                    {#if fileFrag && !dirFrag}
+                        <small
+                            >{languages ? fileFrag.languages[0] : ''}
+                            {languages ? CENTER_DOT : ''}
+                            {fileFrag.totalLines} Lines {CENTER_DOT} Bytes {formatBytes(fileFrag.byteSize)}</small
+                        >
+                    {:else if dirFrag && !fileFrag}
+                        <small
+                            >Subdirectories {dirFrag.directories.length}
+                            {CENTER_DOT} Files {dirFrag.files.length}</small
+                        >
+                    {/if}
+                </div>
+            </div>
         </div>
 
-        <div class="lang-and-file">
-            {#if dirFrag}
-                <Icon svgPath={mdiFolder} --icon-fill-color="var(--primary)" --icon-size="1.5rem" />
-            {:else if fileFrag}
-                <FileIcon file={entry.__typename === 'GitBlob' ? entry : null} inline={false} size="1.5rem" />
-            {/if}
-            <div class="file">
-                <div>{fileOrDirName}</div>
+        <div class="last-commit">
+            <small class="title">Last Changed @</small>
+            <div class="commit">
+                <NodeLine />
                 {#if fileFrag && !dirFrag}
-                    <small
-                        >{fileFrag.languages[0]}
-                        {CENTER_DOT}
-                        {fileFrag.totalLines} Lines {CENTER_DOT} Bytes {formatBytes(fileFrag.byteSize)}</small
-                    >
+                    <div>
+                        <a href={fileCommit?.canonicalURL} target="_blank">
+                            {fileCommit?.abbreviatedOID}
+                        </a>
+                        <div class="msg">{fileCommit?.subject}</div>
+                        <div class="author">
+                            <Avatar avatar={fileFrag.blame[0].author.person} --avatar-size="1.0rem" />
+                            <small class="name"
+                                >{fileFrag?.blame[0]?.author?.person?.displayName}
+                                {CENTER_DOT}
+                                <Timestamp date={fileFrag?.blame[0]?.author.date} /></small
+                            >
+                        </div>
+                    </div>
                 {:else if dirFrag && !fileFrag}
-                    <small>Subdirectories {dirFrag.directories.length} {CENTER_DOT} Files {dirFrag.files.length}</small>
+                    <div>
+                        <a href={dirFrag?.commit?.canonicalURL} target="_blank">
+                            {dirFrag?.commit?.abbreviatedOID}
+                        </a>
+                        <div class="msg">{dirFrag?.commit.subject}</div>
+                        <div class="author">
+                            <Avatar avatar={dirFrag?.commit.author.person} --avatar-size="1.0rem" />
+                            <small class="name"
+                                >{dirFrag?.commit?.author?.person?.displayName}
+                                {CENTER_DOT}
+                                <Timestamp date={dirFrag?.commit?.author?.date} /></small
+                            >
+                        </div>
+                    </div>
                 {/if}
             </div>
         </div>
     </div>
-
-    <div class="last-commit">
-        <small class="title">Last Changed @</small>
-        <div class="commit">
-            <NodeLine />
-            {#if fileFrag && !dirFrag}
-                <div>
-                    <a href={fileCommit?.canonicalURL} target="_blank">
-                        {fileCommit?.abbreviatedOID}
-                    </a>
-                    <div class="msg">{fileCommit?.subject}</div>
-                    <div class="author">
-                        <Avatar avatar={fileFrag.blame[0].author.person} --avatar-size="1.0rem" />
-                        <small class="name"
-                            >{fileFrag?.blame[0]?.author?.person?.displayName}
-                            {CENTER_DOT}
-                            <Timestamp date={fileFrag?.blame[0]?.author.date} /></small
-                        >
-                    </div>
-                </div>
-            {:else if dirFrag && !fileFrag}
-                <div>
-                    <a href={dirFrag?.commit?.canonicalURL} target="_blank">
-                        {dirFrag?.commit?.abbreviatedOID}
-                    </a>
-                    <div class="msg">{dirFrag?.commit.subject}</div>
-                    <div class="author">
-                        <Avatar avatar={dirFrag?.commit.author.person} --avatar-size="1.0rem" />
-                        <small class="name"
-                            >{dirFrag?.commit?.author?.person?.displayName}
-                            {CENTER_DOT}
-                            <Timestamp date={dirFrag?.commit?.author?.date} /></small
-                        >
-                    </div>
-                </div>
-            {/if}
-        </div>
-    </div>
-</div>
+{/if}
 
 <style lang="scss">
     .root {
