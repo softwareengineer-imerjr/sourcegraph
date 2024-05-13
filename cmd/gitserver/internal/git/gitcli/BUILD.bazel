@@ -8,6 +8,7 @@ go_library(
         "blame.go",
         "clibackend.go",
         "command.go",
+        "commitgraph.go",
         "commits.go",
         "config.go",
         "contributors.go",
@@ -54,6 +55,7 @@ go_test(
     srcs = [
         "archivereader_test.go",
         "blame_test.go",
+        "commitgraph_test.go",
         "commits_test.go",
         "config_test.go",
         "contributors_test.go",

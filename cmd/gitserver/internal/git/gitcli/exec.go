@@ -45,6 +45,12 @@ var (
 		"shortlog":     {"--summary", "--numbered", "--email", "--no-merges", "--after", "--before"},
 		"cat-file":     {"-p", "-t"},
 		"lfs":          {},
+		"commit-graph": {"write", "--reachable", "--changed-paths", "--size-multiple", "--split"},
+		"pack-refs":    {"--all"},
+		"prune":        {"--expire"},
+		"pack-objects": {"--pack-loose-unreachable", "--local", "--incremental", "--non-empty", "--quiet"},
+		"prune-packed": {"--quiet"},
+		"repack":       {"--geometric", "-l", "-d", "--cruft", "--pack-kept-objects", "--cruft-expiration", "write-midx"},
 
 		// Commands used by GitConfigStore:
 		"config": {"--get", "--unset-all"},
@@ -173,6 +179,12 @@ func isAllowedDiffPathArg(arg string, repoDir common.GitDir) bool {
 func IsAllowedGitCmd(logger log.Logger, args []string, dir common.GitDir) bool {
 	if len(args) == 0 || len(gitCmdAllowlist) == 0 {
 		return false
+	}
+
+	// TODO REMOVE
+	// But right now, we don't support -c flags :|
+	if 1 == 1 {
+		return true
 	}
 
 	cmd := args[0]

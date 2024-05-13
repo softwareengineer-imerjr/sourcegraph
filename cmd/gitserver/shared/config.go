@@ -39,6 +39,8 @@ type Config struct {
 	JanitorInterval                       time.Duration
 	JanitorDisableDeleteReposOnWrongShard bool
 
+	EnableExperimentalJanitor bool
+
 	ExhaustiveRequestLoggingEnabled bool
 }
 
@@ -88,4 +90,6 @@ func (c *Config) Load() {
 	c.JanitorDisableDeleteReposOnWrongShard = c.GetBool("SRC_REPOS_JANITOR_DISABLE_DELETE_REPOS_ON_WRONG_SHARD", "false", "Disable deleting repos on wrong shard")
 
 	c.ExhaustiveRequestLoggingEnabled = c.GetBool("SRC_GITSERVER_EXHAUSTIVE_LOGGING_ENABLED", "false", "Enable exhaustive request logging in gitserver")
+
+	c.EnableExperimentalJanitor = c.GetBool("SRC_GITSERVER_ENABLE_EXPERIMENTAL_JANITOR", "false", "Enable experimental janitor. DO NOT USE THIS IN PRODUCTION, IT MIGHT CORRUPT ALL REPOS AND RECOVERY WILL REQUIRE A FULL RECLONE OF ALL REPOS.")
 }
